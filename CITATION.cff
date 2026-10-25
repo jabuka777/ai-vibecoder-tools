@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "Если используете или цитируете эти инструменты — сошлитесь, пожалуйста, так."
+title: "AI Vibecoder Tools"
+abstract: "Открытая коллекция рабочих инструментов, собранных вайбкодингом с ИИ-агентами (Claude Code): Zoom Meeting Agent — ИИ-агент в Zoom-созвоне с локальной расшифровкой (faster-whisper), ответами в чате и выжимкой встречи."
+authors:
+  - family-names: "Ambrosyuk"
+    given-names: "Evgeny"
+    alias: "Eugene_Amb"
+repository-code: "https://github.com/jabuka777/ai-vibecoder-tools"
+license: MIT
+keywords: [vibecoding, ai-agents, claude-code, zoom, meeting-bot, whisper, transcription, meeting-summary]
+date-released: "2026-10-25"

@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Zoom meeting agent</title>
+  <link type="text/css" rel="stylesheet" href="/static/lib/av/bootstrap.css" onerror="this.remove()">
+</head>
+<body>
+<script src="/static/lib/vendor/react.min.js"></script>
+<script src="/static/lib/vendor/react-dom.min.js"></script>
+<script src="/static/lib/vendor/redux.min.js"></script>
+<script src="/static/lib/vendor/redux-thunk.min.js"></script>
+<script src="/static/lib/vendor/lodash.min.js"></script>
+<script src="/static/zoom-meeting-6.10.0.min.js"></script>
+<script>
+// Бот: входит во встречу, звук пишет audio-hook.js (подключён Playwright'ом до загрузки),
+// чат и события шлёт на локальный сервер, команды «написать в чат» забирает оттуда же.
+const q = new URLSearchParams(location.search);
+const log = (kind, data) => fetch('/event', {method: 'POST', body: JSON.stringify({kind, data, ts: Date.now()})});
+
+ZoomMtg.setZoomJSLib('/static/lib', '/av');
+ZoomMtg.preLoadWasm();
+ZoomMtg.prepareWebSDK();
+
+async function main() {
+  const r = await fetch('/signature?mn=' + encodeURIComponent(q.get('mn')));
+  const {signature} = await r.json();
+  ZoomMtg.init({
+    leaveUrl: '/left',
+    patchJsMedia: true,
+    disablePreview: true,
+    success: () => ZoomMtg.join({
+      meetingNumber: q.get('mn'),
+      passWord: q.get('pwd') || '',
+      userName: q.get('name') || 'AI-агент',
+      signature,
+      success: () => { log('joined', {}); afterJoin(); },
+      error: (e) => log('join_error', e),
+    }),
+    error: (e) => log('init_error', e),
+  });
+}
+
+function afterJoin() {
+  if (q.get('unmute') === '1') setTimeout(() => ZoomMtg.getCurrentUser({success: (r) =>
+    ZoomMtg.mute({userId: r.result.currentUser.userId, mute: false,
+      success: () => log('unmuted', {}), error: (e) => log('unmute_error', e)})}), 8000);
+  ZoomMtg.inMeetingServiceListener('onReceiveChatMsg', (d) => log('chat', d));
+  ZoomMtg.inMeetingServiceListener('onReceiveTranscriptionMsg', (d) => log('caption', d));
+  ZoomMtg.inMeetingServiceListener('onUserJoin', (d) => log('user_join', d));
+  ZoomMtg.inMeetingServiceListener('onUserLeave', (d) => log('user_leave', d));
+  ZoomMtg.inMeetingServiceListener('onMeetingStatus', (d) => log('status', d));
+  // исходящие сообщения: сервер держит очередь, бот забирает раз в 2 с
+  setInterval(async () => {
+    const r = await fetch('/outbox');
+    const msgs = await r.json();
+    for (const m of msgs) {
+      ZoomMtg.sendChat({message: m, success: () => log('chat_sent', {m}), error: (e) => log('chat_error', e)});
+      await new Promise(res => setTimeout(res, 1100));
+    }
+  }, 2000);
+}
+
+main();
+</script>
+</body>
+</html>
