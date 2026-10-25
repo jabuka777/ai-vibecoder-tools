@@ -1,0 +1,68 @@
+{
+  "comparability": "Exploratory runs with changing instructions and references, not a controlled model-quality or cost benchmark.",
+  "runs": [
+    {
+      "run": 1,
+      "first_case": {
+        "case_id": "accepted_action",
+        "call": 1,
+        "backend": "codex",
+        "model": "gpt-6-luna",
+        "success": true,
+        "elapsed_seconds": 4.066,
+        "usage": {
+          "input_tokens": 9659,
+          "cached_input_tokens": 6912,
+          "output_tokens": 202
+        }
+      },
+      "total_usage": {
+        "input_tokens": 154581,
+        "cached_input_tokens": 91264,
+        "output_tokens": 3475
+      }
+    },
+    {
+      "run": 2,
+      "first_case": {
+        "case_id": "accepted_action",
+        "call": 1,
+        "backend": "codex",
+        "model": "gpt-6-luna",
+        "success": true,
+        "elapsed_seconds": 3.814,
+        "usage": {
+          "input_tokens": 7177,
+          "cached_input_tokens": 3456,
+          "output_tokens": 176
+        }
+      },
+      "total_usage": {
+        "input_tokens": 114843,
+        "cached_input_tokens": 48384,
+        "output_tokens": 3925
+      }
+    },
+    {
+      "run": 3,
+      "first_case": {
+        "case_id": "accepted_action",
+        "call": 1,
+        "backend": "codex",
+        "model": "gpt-6-luna",
+        "success": true,
+        "elapsed_seconds": 3.513,
+        "usage": {
+          "input_tokens": 7381,
+          "cached_input_tokens": 3456,
+          "output_tokens": 175
+        }
+      },
+      "total_usage": {
+        "input_tokens": 118141,
+        "cached_input_tokens": 48384,
+        "output_tokens": 4593
+      }
+    }
+  ]
+}

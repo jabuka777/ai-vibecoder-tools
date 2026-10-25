@@ -17,16 +17,36 @@
 // чат и события шлёт на локальный сервер, команды «написать в чат» забирает оттуда же.
 const q = new URLSearchParams(location.search);
 const log = (kind, data) => fetch('/event', {method: 'POST', body: JSON.stringify({kind, data, ts: Date.now()})});
+let finishingCapture = null;
+function finishCaptureAndLeave() {
+  if (finishingCapture) return finishingCapture;
+  finishingCapture = (async () => {
+    try {
+      if (typeof window.__zbStopCapture !== 'function') throw Error('Capture hook missing');
+      await window.__zbStopCapture();
+    } catch (_) {
+      await log('capture_error', {stage: 'leave_flush'});
+    }
+    await fetch('/left', {method: 'POST', body: ''});
+  })();
+  return finishingCapture;
+}
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#meeting-left') finishCaptureAndLeave();
+});
 
 ZoomMtg.setZoomJSLib('/static/lib', '/av');
 ZoomMtg.preLoadWasm();
 ZoomMtg.prepareWebSDK();
 
 async function main() {
+  if (q.has('left')) { await finishCaptureAndLeave(); return; }
   const r = await fetch('/signature?mn=' + encodeURIComponent(q.get('mn')));
   const {signature} = await r.json();
   ZoomMtg.init({
-    leaveUrl: '/left',
+    // A fragment change preserves this document and its final MediaRecorder
+    // buffer. The Python guard still fails closed if Zoom forces a new document.
+    leaveUrl: location.href.split('#')[0] + '#meeting-left',
     patchJsMedia: true,
     disablePreview: true,
     success: () => ZoomMtg.join({
@@ -49,7 +69,10 @@ function afterJoin() {
   ZoomMtg.inMeetingServiceListener('onReceiveTranscriptionMsg', (d) => log('caption', d));
   ZoomMtg.inMeetingServiceListener('onUserJoin', (d) => log('user_join', d));
   ZoomMtg.inMeetingServiceListener('onUserLeave', (d) => log('user_leave', d));
-  ZoomMtg.inMeetingServiceListener('onMeetingStatus', (d) => log('status', d));
+  ZoomMtg.inMeetingServiceListener('onMeetingStatus', (d) => {
+    log('status', d);
+    if (d.meetingStatus === 3) finishCaptureAndLeave();
+  });
   // исходящие сообщения: сервер держит очередь, бот забирает раз в 2 с
   setInterval(async () => {
     const r = await fetch('/outbox');

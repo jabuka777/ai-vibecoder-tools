@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-26",
+  "os_tested": "Linux",
+  "backend": "codex",
+  "cli_version": "0.164.0",
+  "model": "gpt-6-luna",
+  "fixture_set_sha256": "4d70b821694188d54cd50ca89c2db30ced737849755d554ef7a5645f4b590197",
+  "extraction_instructions_sha256": "d5c26455201b02db38cdc0760410e1afbff50c3b70efb72cfd6e202c44632a91",
+  "source_sha256": {
+    "minutes.py": "1ab3746895634840ec65032c81d86a751b4bef8c213b6ba40559a827428e5037",
+    "llm.py": "5350808f87eb358f4d2d0589b31b4400207c271c9736ea35f5ca67ccbc45b09d",
+    "tools/evaluate_minutes.py": "62bac8c584e11c3b7a1620bb97cb57f7da1e3958f5723ae3abaccea9585e7705",
+    "tests/fixtures/meeting_cases.jsonl": "cae804fbd899b03da3d58cb65d25dd08fe0e6389aa25b31eeb09d9c3986769d9"
+  },
+  "artifact_sha256": {
+    "report.json": "35b7727ec753f5bceb581bd761e8194b33a457a24321084d5a92cd9867c8c806",
+    "metrics.jsonl": "7f33e9104a958c5b787955701e9b07f6f3979ea67f0ebeb1d64bb95845c717ab",
+    "results.jsonl": "50b681a190e911dfaf001471356ca1bbd222ca7400052db408df11db449293de",
+    "token-comparison.json": "e4c64696f1d6bf705769ced1954104868f9983ead410229b72c016c71f962d8d"
+  },
+  "sanitization": "Only report paths changed to relative names; an artifact_note was added. Results and metrics contain synthetic fixtures only. No credentials or real meeting data.",
+  "source_sha256_scope": "Source snapshot used to recheck the saved results offline. The live report itself fingerprints only the fixture set and extraction instructions.",
+  "offline_recheck": {
+    "passed": 16,
+    "total": 16
+  }
+}

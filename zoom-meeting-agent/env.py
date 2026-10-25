@@ -2,7 +2,8 @@
 import os
 from pathlib import Path
 
-ENV_FILE = Path(__file__).resolve().parent / ".env"
+APP_HOME = Path(os.environ.get("ZOOM_AGENT_HOME", Path(__file__).resolve().parent)).resolve()
+ENV_FILE = APP_HOME / ".env"
 
 
 def load_env() -> dict:
@@ -13,7 +14,7 @@ def load_env() -> dict:
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 out[k.strip()] = v.strip().strip('"').strip("'")
-    out.update({k: v for k, v in os.environ.items() if k.startswith(("ZOOM_", "AGENT_", "TELEGRAM_"))})
+    out.update({k: v for k, v in os.environ.items() if k.startswith(("ZOOM_", "AGENT_", "TELEGRAM_", "CODEX_MODEL"))})
     return out
 
 
@@ -23,12 +24,12 @@ import sys
 import tempfile
 
 HERE = Path(__file__).resolve().parent
-SESSIONS = HERE / "sessions"
+SESSIONS = APP_HOME / "sessions"
 
 
 def venv_python() -> str:
     """Python из .venv рядом (Windows: Scripts\\python.exe, остальные: bin/python), иначе текущий."""
-    for p in (HERE / ".venv" / "Scripts" / "python.exe", HERE / ".venv" / "bin" / "python"):
+    for p in (APP_HOME / ".venv" / "Scripts" / "python.exe", APP_HOME / ".venv" / "bin" / "python"):
         if p.exists():
             return str(p)
     return sys.executable

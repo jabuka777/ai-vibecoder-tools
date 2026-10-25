@@ -6,16 +6,26 @@
   python login.py
 """
 from pathlib import Path
+import os
+import json
+import tempfile
 
 from playwright.sync_api import sync_playwright
 
-OUT = Path(__file__).resolve().parent / "storage_state.json"
+from env import APP_HOME
+
+OUT = APP_HOME / "storage_state.json"
 with sync_playwright() as p:
     br = p.chromium.launch(headless=False)
     ctx = br.new_context()
     page = ctx.new_page()
     page.goto("https://zoom.us/signin")
     input("Войдите в Zoom в открывшемся окне, затем нажмите Enter здесь… ")
-    ctx.storage_state(path=str(OUT))
+    with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=OUT.parent, delete=False) as saved:
+        os.chmod(saved.name, 0o600)
+        json.dump(ctx.storage_state(), saved)
+        saved.flush()
+        os.fsync(saved.fileno())
+    os.replace(saved.name, OUT)
     br.close()
 print(f"сессия сохранена: {OUT} (не публикуйте этот файл — в нём вход в аккаунт)")

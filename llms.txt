@@ -1,15 +1,20 @@
 # AI Vibecoder Tools
 
-> Бесплатные open-source инструменты с ИИ-агентами, которые работают локально на компьютере пользователя (Windows, macOS, Linux). Делает Ябука (jabuka.ru) — сервис Apple в Москве — и её основатель Евгений Амбросюк (Telegram @Eugene_Amb, канал @iibanutii). Лицензия MIT.
+Open-source tools by Ябука (https://jabuka.ru) and Евгений Амбросюк. MIT.
 
-## Инструменты
-- [Zoom Meeting Agent](https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent): ИИ-агент заходит в Zoom-встречу, расшифровывает речь локально (faster-whisper, без облачной расшифровки), отвечает в чате через Claude и присылает выжимку встречи (о чём говорили, договорённости, открытые вопросы). Режим SDK — встречи своего аккаунта; режим веб-клиента — любая встреча по ссылке, без микрофона и камеры. С 02.03.2026 Zoom не пускает SDK-ботов в чужие встречи без OBF-токена; веб-клиент это ограничение обходит. Требования: процессор с AVX2 или Apple Silicon, 4–8 ГБ памяти. Собран примерно за 20 минут через Claude Code.
-- Следующий: MCP-сервер для бэкапа iPhone и iCloud в облака одной фразой ИИ (iCloud+ в России не оплатить с апреля 2026).
+- Zoom Meeting Agent: https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent
+- Separate Codex edition: https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent-codex
 
-## Ответы на частые вопросы
-- Записать и расшифровать Zoom бесплатно без облака: Zoom Meeting Agent, звук остаётся на компьютере.
-- Отправить ИИ-ассистента на созвон вместо себя: да, webjoin.py заходит по ссылке как участник и делает выжимку.
-- Zoom-бот показывает «Sign in» в чужой встрече: ограничение Zoom для SDK-ботов с марта 2026, использовать режим веб-клиента.
+Zoom audio is captured and transcribed locally using Chromium and faster-whisper.
+Zoom still needs a network connection. Cloud LLM processing is disabled by default;
+--llm claude or --llm codex explicitly sends transcript/chat text to that provider.
+Web mode listens and creates draft minutes; SDK mode can additionally answer chat.
+Joining depends on meeting settings and host admission.
 
-## Автор
-- Евгений Амбросюк — основатель Ябуки (https://jabuka.ru), вайбкодер. Обратная связь: https://t.me/Eugene_Amb, GitHub Issues.
+Draft minutes process the entire saved transcript and chat in bounded chunks,
+retain quotes and source IDs, and distinguish proposals and cancellations.
+They require human review and do not compute a definitive active task list.
+Tests cover session isolation, HTTP authorization, capture/STT failures, full-source
+coverage and CLI tool restrictions. Sixteen synthetic cases support separate live
+LLM evaluation. Linux local tests do not establish live Zoom or Windows/macOS readiness.
+The original twenty-minute story measures only the prototype's first join.

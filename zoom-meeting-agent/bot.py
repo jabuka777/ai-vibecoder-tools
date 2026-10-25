@@ -1,202 +1,120 @@
 #!/usr/bin/env python3
-"""Zoom-бот: входит во встречу своего Zoom-аккаунта (Meeting SDK, Web),
-пишет звук кусками → stt.py расшифровывает whisper'ом, чат и события — в журнал,
-умеет писать в чат встречи (say.py).
-
-  bot.py --mn <номер> --pwd <пароль> [--name "AI-агент"] [--port 8791] [--headed]
-
-Встреча должна принадлежать аккаунту, в котором создано SDK-приложение: во встречи
-чужих аккаунтов Zoom с 02.03.2026 пускает SDK-ботов только по OBF-токену. Для чужих
-встреч — webjoin.py (веб-клиент).
-
-Сессия: sessions/<дата>-<mn>/ — events.jsonl, chunks/*.webm, transcript.md.
-Ключи — .env рядом (ZOOM_SDK_CLIENT_ID / ZOOM_SDK_CLIENT_SECRET), см. .env.example.
-"""
+"""Zoom SDK listener: session-bound controls, local STT, optional cloud LLM."""
 import argparse
-import base64
-import datetime as dt
-import hashlib
-import hmac
-import json
-import os
+from pathlib import Path
 import signal
 import subprocess
 import sys
 import threading
 import time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlencode
+
+from control import State, create_server
+from env import load_env, need
+from runtime import CaptureGuard, Monitor, finish, new_session, start_stt
 
 HERE = Path(__file__).resolve().parent
-STATIC = HERE / "static"
-sys.path.insert(0, str(HERE))
-from env import current, load_env, need, set_current, venv_python  # noqa: E402
 
 
-def b64url(b: bytes) -> str:
-    return base64.urlsafe_b64encode(b).rstrip(b"=").decode()
+def bind_control(context, state):
+    """Attach credentials to the session origin only, including static requests."""
+    context.route(f'http://127.0.0.1:{state.port}/**', lambda route:
+                  route.continue_(headers={**route.request.headers, 'Authorization': 'Bearer ' + state.token}))
 
 
-def sdk_signature(client_id: str, secret: str, mn: str, role: int = 0) -> str:
-    """JWT для Meeting SDK (HS256): https://developers.zoom.us/docs/meeting-sdk/auth/"""
-    iat = int(time.time()) - 30
-    exp = iat + 2 * 3600
-    head = b64url(json.dumps({"alg": "HS256", "typ": "JWT"}).encode())
-    body = b64url(json.dumps({"appKey": client_id, "sdkKey": client_id, "mn": str(mn),
-                              "role": role, "iat": iat, "exp": exp, "tokenExp": exp}).encode())
-    sig = hmac.new(secret.encode(), f"{head}.{body}".encode(), hashlib.sha256).digest()
-    return f"{head}.{body}.{b64url(sig)}"
-
-
-class State:
-    def __init__(self, sess: Path, env: dict):
-        self.sess = sess
-        self.env = env
-        self.outbox: list[str] = []
-        self.lock = threading.Lock()
-        self.left = threading.Event()
-        (sess / "chunks").mkdir(parents=True, exist_ok=True)
-
-    def event(self, rec: dict):
-        rec.setdefault("ts", int(time.time() * 1000))
-        with open(self.sess / "events.jsonl", "a") as f:
-            f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-        kind = rec.get("kind")
-        if kind in ("joined", "join_error", "init_error", "chat", "chat_sent", "chat_error", "left"):
-            print(f"[{kind}] {json.dumps(rec.get('data'), ensure_ascii=False)[:300]}", flush=True)
-
-
-def make_handler(st: State):
-    class H(BaseHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
-
-        def _send(self, code, body=b"", ctype="application/json"):
-            self.send_response(code)
-            self.send_header("Content-Type", ctype)
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-
-        def do_GET(self):
-            u = urlparse(self.path)
-            if u.path == "/signature":
-                mn = parse_qs(u.query)["mn"][0]
-                sig = sdk_signature(st.env["ZOOM_SDK_CLIENT_ID"], st.env["ZOOM_SDK_CLIENT_SECRET"], mn)
-                return self._send(200, json.dumps({"signature": sig}).encode())
-            if u.path == "/outbox":
-                with st.lock:
-                    msgs, st.outbox = st.outbox, []
-                return self._send(200, json.dumps(msgs, ensure_ascii=False).encode())
-            if u.path == "/left":
-                st.event({"kind": "left"})
-                st.left.set()
-                return self._send(200, b"left", "text/plain")
-            if u.path in ("/", "/index.html"):
-                u = u._replace(path="/static/index.html")
-            if u.path.startswith("/static/"):
-                p = (STATIC / u.path[len("/static/"):]).resolve()
-                if STATIC in p.parents and p.is_file():
-                    ctype = {".html": "text/html", ".js": "application/javascript", ".css": "text/css",
-                             ".json": "application/json", ".wasm": "application/wasm"}.get(p.suffix, "application/octet-stream")
-                    return self._send(200, p.read_bytes(), ctype)
-            self._send(404, b"not found", "text/plain")
-
-        def do_POST(self):
-            u = urlparse(self.path)
-            n = int(self.headers.get("Content-Length") or 0)
-            data = self.rfile.read(n)
-            if u.path == "/audio":
-                ts = parse_qs(u.query).get("ts", [str(int(time.time() * 1000))])[0]
-                (st.sess / "chunks" / f"{ts}.webm").write_bytes(data)
-                return self._send(200, b"{}")
-            if u.path == "/event":
-                try:
-                    st.event(json.loads(data))
-                except Exception:
-                    pass
-                return self._send(200, b"{}")
-            if u.path == "/say":
-                msg = json.loads(data)["message"]
-                with st.lock:
-                    st.outbox.append(msg)
-                return self._send(200, b"{}")
-            self._send(404, b"not found", "text/plain")
-
-    return H
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--mn", required=True, help="номер встречи, без пробелов")
-    ap.add_argument("--pwd", default="", help="пароль встречи (pwd из ссылки тоже подходит)")
-    ap.add_argument("--name", default=None, help="имя в встрече (по умолчанию AGENT_NAME или «AI-агент»)")
-    ap.add_argument("--port", type=int, default=8791)
-    ap.add_argument("--headed", action="store_true")
-    ap.add_argument("--no-stt", action="store_true")
-    ap.add_argument("--no-agent", action="store_true", help="не отвечать в чате и не слать выжимку")
-    ap.add_argument("--mic-file", help="wav, который бот «говорит» в микрофон (для теста), включает микрофон")
-    ap.add_argument("--minutes", type=float, default=0, help="выйти через N минут (0 — до конца встречи)")
-    a = ap.parse_args()
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--mn', required=True)
+    parser.add_argument('--pwd', default='')
+    parser.add_argument('--name', default=None)
+    parser.add_argument('--port', type=int, default=0, help='0: allocate a separate free port')
+    parser.add_argument('--headed', action='store_true')
+    parser.add_argument('--no-stt', action='store_true')
+    parser.add_argument('--no-agent', action='store_true', help='alias for --llm none')
+    parser.add_argument('--llm', choices=['none', 'claude', 'codex'], default='none')
+    parser.add_argument('--model')
+    parser.add_argument('--mic-file', type=Path)
+    parser.add_argument('--minutes', type=float, default=0)
+    args = parser.parse_args(argv)
+    if args.minutes < 0 or not 0 <= args.port <= 65535:
+        parser.error('Invalid minutes or port')
+    if args.no_agent:
+        args.llm = 'none'
+    if args.no_stt and args.llm != 'none':
+        parser.error('--no-stt requires --llm none')
+    settings = load_env()
+    if not all(settings.get(key) for key in ('ZOOM_SDK_CLIENT_ID', 'ZOOM_SDK_CLIENT_SECRET')):
+        parser.error('Configure SDK credentials in .env; see REGISTRATION.md')
+    if not args.no_stt:
+        need('ffmpeg')
+    if args.mic_file and not args.mic_file.is_file():
+        parser.error('--mic-file does not exist')
+    meeting = args.mn.replace(' ', '')
+    session = new_session(meeting, 'sdk', args.llm, args.model)
+    state = State(session, settings, meeting)
+    server = create_server(state, args.port)
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    monitor = Monitor(session, capture_required=not args.no_stt)
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
-    deadline = time.time() + a.minutes * 60 if a.minutes else None
-    mn = a.mn.replace(" ", "")
-    a.name = a.name or load_env().get("AGENT_NAME", "AI-агент")
-
-    sess = HERE / "sessions" / f"{dt.datetime.now():%Y-%m-%d_%H%M%S}-{mn}-{a.port}"
-    st = State(sess, load_env())
-    set_current(sess)
-    srv = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(st))
-    threading.Thread(target=srv.serve_forever, daemon=True).start()
-    (HERE / "sessions" / "port").write_text(str(a.port), encoding="utf-8")
-    print(f"сессия: {sess}", flush=True)
-
-    stt = None
-    if not a.no_stt:
-        need("ffmpeg")
-        stt = subprocess.Popen([venv_python(), str(HERE / "stt.py"), str(sess)])
-    agent = None
-    if not a.no_agent:
-        agent = subprocess.Popen([sys.executable, str(HERE / "agent.py"), str(sess)])
-
-    from playwright.sync_api import sync_playwright
-    from urllib.parse import urlencode
-    with sync_playwright() as p:
-        br = p.chromium.launch(headless=not a.headed, args=[
-            "--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream",
-            "--autoplay-policy=no-user-gesture-required"]
-            + ([f"--use-file-for-fake-audio-capture={Path(a.mic_file).resolve()}"] if a.mic_file else []))
-        ctx = br.new_context(permissions=["microphone", "camera"])
-        ctx.add_init_script(path=str(STATIC / "audio-hook.js"))
-        page = ctx.new_page()
-        page.on("console", lambda m: m.type == "error" and st.event({"kind": "console", "data": m.text[:500]}))
-        url = f"http://127.0.0.1:{a.port}/?" + urlencode({"mn": mn, "pwd": a.pwd, "name": a.name, "unmute": int(bool(a.mic_file))})
-        page.goto(url)
-        try:
-            n = 0
-            while not st.left.is_set() and not (deadline and time.time() > deadline):
-                page.wait_for_timeout(5000)
-                n += 1
-                if n % 6 == 1:
-                    page.screenshot(path=str(sess / "last.png"))
-        except KeyboardInterrupt:
-            pass
-        finally:
+    print(f'Session: {session}; LLM: {args.llm}', flush=True)
+    deadline = time.monotonic() + args.minutes * 60 if args.minutes else None
+    try:
+        from playwright.sync_api import sync_playwright
+        if not args.no_stt:
+            monitor.stt = start_stt(session)
+        if args.llm != 'none':
+            command = [sys.executable, str(HERE / 'agent.py'), str(session), '--backend', args.llm, '--name', args.name or settings.get('AGENT_NAME', 'AI-агент')]
+            if args.model:
+                command += ['--model', args.model]
+            monitor.agent = subprocess.Popen(command)
+        with sync_playwright() as playwright:
+            flags = ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
+                     '--autoplay-policy=no-user-gesture-required']
+            if args.mic_file:
+                flags.append(f'--use-file-for-fake-audio-capture={args.mic_file.resolve()}')
+            browser = playwright.chromium.launch(headless=not args.headed, args=flags)
             try:
-                page.screenshot(path=str(sess / "last.png"))
-            except Exception:
-                pass
-            br.close()
-    if stt:
-        time.sleep(25)  # дать последнему куску дописаться
-        stt.terminate()
-    if agent:
-        agent.terminate()
-        if not a.no_stt and (sess / "transcript.md").exists():
-            subprocess.run([sys.executable, str(HERE / "agent.py"), str(sess), "--summary"], check=False)
-    print(f"готово: {sess / 'transcript.md'}", flush=True)
+                context = browser.new_context(permissions=['microphone', 'camera'])
+                bind_control(context, state)
+                context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))
+                page = context.new_page()
+                capture = CaptureGuard(page, monitor)
+                try:
+                    page.goto(f'http://127.0.0.1:{state.port}/?' + urlencode({'mn': meeting, 'pwd': args.pwd,
+                              'name': args.name or settings.get('AGENT_NAME', 'AI-агент'),
+                              'unmute': int(bool(args.mic_file))}))
+                    capture.check()
+                    while not state.left.is_set() and not (deadline and time.monotonic() >= deadline):
+                        capture.check()
+                        if state.capture_failed:
+                            monitor.failed = True
+                            monitor.problems.add('capture_error')
+                        monitor.tick(state.joined, state.last_audio, state.audio_source)
+                        page.wait_for_timeout(1000)
+                finally:
+                    try:
+                        capture.flush()
+                    except Exception:
+                        monitor.failed = True
+                        monitor.problems.add('capture_flush_failed')
+            finally:
+                browser.close()
+    except KeyboardInterrupt:
+        monitor.problems.add('stopped_by_user')
+    except Exception as exc:
+        monitor.failed = True
+        monitor.problems.add(type(exc).__name__)
+        monitor.write('failed', type(exc).__name__)
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)
+        if monitor.joined_at is None:
+            monitor.failed = True
+            monitor.problems.add('join_not_verified')
+    return finish(session, monitor, args.llm, args.model)
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    raise SystemExit(main())

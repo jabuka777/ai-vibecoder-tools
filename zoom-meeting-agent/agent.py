@@ -1,36 +1,22 @@
 #!/usr/bin/env python3
-"""Агент встречи: отвечает в чате Zoom, когда к нему обращаются, и после встречи
-делает выжимку (summary.md, по желанию — в Telegram).
+"""Opt-in meeting replies and draft minutes through Claude or Codex.
 
-  agent.py <сессия>            слушать чат/расшифровку и отвечать (запускает bot.py)
-  agent.py <сессия> --summary  выжимка встречи → summary.md (+ Telegram, если задан)
+  agent.py <session> --backend claude|codex [--model NAME]
+  agent.py <session> --backend claude|codex --summary
 
-Обращение: в чате — слово «бот» или сообщение с «?» в начале; голосом — «бот, …»,
-«эй бот», «окей бот». Ответ — Claude через CLI `claude -p` (Claude Code), модель —
-AGENT_MODEL (по умолчанию sonnet). Контекст — последние реплики расшифровки и чата.
-
-Переменные (.env рядом или окружение):
-  AGENT_NAME          имя бота в чате (как в --name у bot.py), по умолчанию «AI-агент»
-  AGENT_MODEL         модель для claude -p, по умолчанию sonnet
-  TELEGRAM_BOT_TOKEN  + TELEGRAM_CHAT_ID — куда прислать выжимку (необязательно)
+Prompts go through stdin to a text-only model boundary. Minutes are saved locally.
 """
 import json
-import os
 import re
-import subprocess
 import sys
 import time
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from env import load_env, need, tmpdir  # noqa: E402
+from env import load_env  # noqa: E402
 
-ENV = load_env()
-BOT_NAME = ENV.get("AGENT_NAME", "AI-агент")
-MODEL = ENV.get("AGENT_MODEL", "sonnet")
+BOT_NAME = "AI-агент"
 CHAT_CALL = re.compile(r"(^\s*\?)|\bбот\b", re.I)
 VOICE_CALL = re.compile(r"(эй|окей|ок|слушай)[,\s]+бот|бот[,!:]\s*\S", re.I)
 
@@ -43,14 +29,9 @@ ROLE = (
 )
 
 
-def port() -> str:
-    return (HERE / "sessions" / "port").read_text(encoding="utf-8").strip()
-
-
-def say(text: str):
-    req = urllib.request.Request(f"http://127.0.0.1:{port()}/say", method="POST",
-                                 data=json.dumps({"message": text}).encode())
-    urllib.request.urlopen(req, timeout=5)
+from say import say
+from llm import call
+from minutes import build_minutes
 
 
 def context(sess: Path, n_lines=40, n_chat=20) -> str:
@@ -73,27 +54,20 @@ def context(sess: Path, n_lines=40, n_chat=20) -> str:
             "\n\nЧАТ ВСТРЕЧИ:\n" + ("\n".join(chat[-n_chat:]) or "—"))
 
 
-def ask(prompt: str, timeout=120) -> str | None:
-    """claude -p без MCP и без сохранения сессии, из временной папки — чтобы не подтянуть чужой CLAUDE.md."""
-    try:
-        r = subprocess.run([need("claude"), "-p", "--model", MODEL, "--strict-mcp-config",
-                            "--no-session-persistence"], input=prompt, capture_output=True,
-                           text=True, timeout=timeout, cwd=tmpdir(), encoding="utf-8")
-    except Exception as e:
-        print(f"[agent] claude -p: {e}", flush=True)
-        return None
-    return r.stdout.strip() or None
+def ask(prompt: str, timeout=120, *, backend="none", model=None, session=None):
+    return call(prompt, backend=backend, model=model, timeout=timeout,
+                metrics_path=session / "llm-metrics.jsonl" if session else None)
 
 
-def answer(sess: Path, who: str, question: str):
+def answer(sess: Path, who: str, question: str, *, backend="none", model=None):
     prompt = f"{ROLE}\n\n{context(sess)}\n\nК тебе обратился {who}: «{question}»\nТвой ответ в чат:"
-    text = ask(prompt)
+    text = ask(prompt, backend=backend, model=model, session=sess)
     if text:
-        say(text[:1000])
-        print(f"[agent] → {text[:200]}", flush=True)
+        say(sess, text[:1000])
+        print("[agent] ответ поставлен в очередь выбранной сессии", flush=True)
 
 
-def listen(sess: Path):
+def listen(sess: Path, *, backend="none", model=None):
     ev, tr = sess / "events.jsonl", sess / "transcript.md"
     ev_pos = ev.stat().st_size if ev.exists() else 0
     tr_pos = tr.stat().st_size if tr.exists() else 0
@@ -117,7 +91,7 @@ def listen(sess: Path):
                 d = e.get("data") or {}
                 who, txt = d.get("sender", ""), (d.get("content") or {}).get("text", "")
                 if who != BOT_NAME and CHAT_CALL.search(txt):
-                    answer(sess, who, txt)
+                    answer(sess, who, txt, backend=backend, model=model)
         if tr.exists() and tr.stat().st_size > tr_pos:
             with open(tr, encoding="utf-8") as f:
                 f.seek(tr_pos)
@@ -126,50 +100,72 @@ def listen(sess: Path):
             for l in new.splitlines():
                 if VOICE_CALL.search(l) and time.time() - last_voice > 30:
                     last_voice = time.time()
-                    answer(sess, "участник голосом", re.sub(r"^\[[\d:]+\]\s*", "", l))
+                    answer(sess, "участник голосом", re.sub(r"^\[[\d:]+\]\s*", "", l), backend=backend, model=model)
 
 
-def telegram(text: str):
-    tok, chat = ENV.get("TELEGRAM_BOT_TOKEN"), ENV.get("TELEGRAM_CHAT_ID")
-    if not (tok and chat):
-        return
-    data = urllib.parse.urlencode({"chat_id": chat, "text": text[:4000], "parse_mode": "Markdown"}).encode()
+def summary(sess: Path, *, backend="none", model=None):
+    status_path = sess / "status.json"
+    status = None
+    if status_path.exists():
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        if (not isinstance(status, dict) or status.get("recording_complete") is not True
+                or status.get("incomplete")
+                or status.get("state") not in ("recorded", "summarizing", "summary_failed", "complete")):
+            print("[agent] завершённая запись не подтверждена; проверьте status.json и исходники", flush=True)
+            return False
+    # No status file is supported only for explicitly supplied legacy transcripts.
+    def summary_status(state):
+        if status is None:
+            return
+        from runtime import atomic_json
+        problems = set(status.get("problems") or [])
+        if state == "failed":
+            problems.add("summary_failed")
+        else:
+            problems.discard("summary_failed")
+        status.update(state={"processing": "summarizing", "failed": "summary_failed", "complete": "complete"}[state],
+                      summary_state=state, ts=time.time(), problems=sorted(problems),
+                      reason="summary_failed" if state == "failed" else None)
+        atomic_json(status_path, status)
+
+    summary_status("processing")
+    selected_model = model or ("sonnet" if backend == "claude" else "gpt-6-luna")
     try:
-        urllib.request.urlopen(f"https://api.telegram.org/bot{tok}/sendMessage", data=data, timeout=15)
-        print("[agent] выжимка отправлена в Telegram", flush=True)
-    except Exception as e:
-        print(f"[agent] Telegram: {e}", flush=True)
+        result = build_minutes(sess,
+            lambda prompt, timeout=300: ask(prompt, timeout, backend=backend, model=selected_model, session=sess),
+            model_key=f"{backend}:{selected_model}:text-only-v1")
+    except Exception:
+        summary_status("failed")
+        raise
+    if result["status"] != "complete":
+        summary_status("failed")
+        print("[agent] протокол не завершён; см. minutes-status.json", flush=True)
+        return False
+    summary_status("complete")
+    print(f"[agent] черновик протокола: {sess / 'summary.md'}", flush=True)
+    return True
 
 
-def summary(sess: Path):
-    tr = sess / "transcript.md"
-    if not tr.exists() or not tr.read_text(encoding="utf-8").strip():
-        print("[agent] расшифровки нет — выжимку не делаю", flush=True)
-        return
-    full = tr.read_text(encoding="utf-8")[-60000:]
-    prompt = (
-        "Ниже автоматическая расшифровка видеовстречи (с ошибками распознавания) и чат. "
-        "Сделай выжимку по-русски, Telegram-markdown (*жирный*), без вступлений:\n"
-        "*О чём встреча* — 1–2 предложения.\n*Главное* — 3–7 пунктов.\n"
-        "*Договорённости и задачи* — кто что делает и к какому сроку, если звучало.\n"
-        "*Открытые вопросы* — если есть.\nНе выдумывай того, чего нет в тексте.\n"
-        "Если на встрече разбирали НЕСКОЛЬКО проектов, команд или докладчиков — раздели выжимку "
-        "по ним, каждый блок с заголовком (название проекта или имя), и не приписывай одному "
-        "то, что говорили о другом. Если не ясно, к кому относится реплика, — так и напиши.\n\n"
-        f"РАСШИФРОВКА:\n{full}\n\n{context(sess, n_lines=0, n_chat=200)}"
-    )
-    text = ask(prompt, timeout=300)
-    if not text:
-        return
-    out = sess / "summary.md"
-    out.write_text(f"🎥 *Встреча Zoom {sess.name[:10]}*\n\n{text}\n", encoding="utf-8")
-    print(f"[agent] выжимка: {out}", flush=True)
-    telegram(out.read_text(encoding="utf-8"))
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Meeting replies and draft minutes")
+    parser.add_argument("session", type=Path)
+    parser.add_argument("--summary", action="store_true")
+    parser.add_argument("--backend", choices=["claude", "codex"], required=True)
+    parser.add_argument("--model")
+    parser.add_argument("--name")
+    args = parser.parse_args()
+    global BOT_NAME
+    BOT_NAME = args.name or load_env().get("AGENT_NAME", "AI-агент")
+    try:
+        if args.summary:
+            return 0 if summary(args.session.resolve(), backend=args.backend, model=args.model) else 1
+        listen(args.session.resolve(), backend=args.backend, model=args.model)
+        return 0
+    except Exception as exc:
+        print(f"[agent] stopped: {type(exc).__name__}", file=sys.stderr, flush=True)
+        return 1
 
 
 if __name__ == "__main__":
-    s = Path(sys.argv[1]).resolve()
-    if "--summary" in sys.argv:
-        summary(s)
-    else:
-        listen(s)
+    raise SystemExit(main())

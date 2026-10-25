@@ -1,0 +1,8 @@
+.env
+.venv/
+sessions/
+storage_state.json
+*.wav
+*.mp3
+*.webm
+__pycache__/
