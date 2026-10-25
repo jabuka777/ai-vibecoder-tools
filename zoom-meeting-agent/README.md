@@ -46,6 +46,8 @@ transcript + чат ──► agent.py (claude -p) ──► ответ в ча�
 - `webjoin.py` — тот же перехват звука через `add_init_script`. Куски передаются в
   Python через `expose_binding`: со страницы `https://app.zoom.us` нельзя слать
   запросы на `127.0.0.1`.
+- `setup_sdk.py` — скачивает Zoom Meeting SDK Web в `static/`.
+- `login.py` — вход аккаунтом бота и сохранение сессии для `webjoin.py`.
 - `stt.py` — расшифровка. Звук декодируется системным ffmpeg: `av` из колеса
   бывает несовместим (`metadata_errors`).
 - `agent.py` — ответы и выжимка через Claude Code CLI (`claude -p`). Можно заменить
@@ -53,18 +55,54 @@ transcript + чат ──► agent.py (claude -p) ──► ответ в ча�
 
 ## Установка
 
+Нужны **Python 3.10+**, **ffmpeg**, **Node.js** (только чтобы один раз скачать SDK)
+и [**Claude Code**](https://claude.com/claude-code) — команда `claude` в PATH, для
+ответов в чате и выжимки. Без него расшифровка всё равно работает.
+
+**macOS**
 ```bash
+brew install python ffmpeg node
 git clone https://github.com/jabuka777/ai-vibecoder-tools && cd ai-vibecoder-tools/zoom-meeting-agent
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-pip install playwright && playwright install chromium     # системный python для bot.py/webjoin.py
-./setup-sdk.sh                                            # Zoom Meeting SDK Web → static/ (нужен npm)
-cp .env.example .env                                      # и заполнить
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && python -m playwright install chromium
+python setup_sdk.py && cp .env.example .env
 ```
 
-Нужны `ffmpeg`, Node.js (только для `setup-sdk.sh`) и
-[Claude Code](https://claude.com/claude-code) (`claude` в PATH) для ответов и выжимки.
+**Windows** (PowerShell)
+```powershell
+winget install Python.Python.3.12 Gyan.FFmpeg OpenJS.NodeJS
+git clone https://github.com/jabuka777/ai-vibecoder-tools; cd ai-vibecoder-tools\zoom-meeting-agent
+py -m venv .venv; .venv\Scripts\Activate.ps1
+pip install -r requirements.txt; python -m playwright install chromium
+python setup_sdk.py; copy .env.example .env
+```
 
-### Ключи Zoom (для `bot.py`)
+**Linux** (Debian/Ubuntu)
+```bash
+sudo apt install python3-venv ffmpeg nodejs npm
+git clone https://github.com/jabuka777/ai-vibecoder-tools && cd ai-vibecoder-tools/zoom-meeting-agent
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt && python -m playwright install --with-deps chromium
+python setup_sdk.py && cp .env.example .env
+```
+
+Дальше все команды выполняются в активированном `.venv` через `python`. При первом
+запуске whisper скачает модель `small` (~500 МБ). Расшифровка идёт на CPU: 20 секунд
+звука на обычном ноутбуке обрабатываются за несколько секунд.
+
+> Проверено на Linux (Ubuntu 24.04): установка с нуля и тест двумя ботами. Код
+> написан под macOS и Windows (пути, кодировки, без symlink и bash), но руками там
+> не прогонялся. Если что-то не так — напишите в
+> [Issues](https://github.com/jabuka777/ai-vibecoder-tools/issues), поправлю.
+
+### Регистрация
+
+Все шаги: Zoom-аккаунт, приложение в Marketplace, профиль,
+тестовая встреча, вход для `webjoin.py` — **[REGISTRATION.md](REGISTRATION.md)**.
+Настраиваете через ИИ-агента? Он прочитает **[AGENTS.md](AGENTS.md)**. Если у агента нет
+доступа к вашей почте, он попросит продиктовать код из письма Zoom.
+
+### Ключи Zoom (для `bot.py`) — коротко
 
 1. Завести отдельный Zoom-аккаунт для бота, **с паролем**, а не через Google/SSO:
    автоматике нужен пароль.
@@ -74,8 +112,8 @@ cp .env.example .env                                      # и заполнит�
 
 ### Сессия для `webjoin.py` (встречи «только для залогиненных»)
 
-Залогиньтесь аккаунтом бота в Playwright и сохраните `storage_state.json` рядом со
-скриптами: `context.storage_state(path="storage_state.json")`. Перед входом во
+Войдите аккаунтом бота: `python login.py` откроет окно браузера. После входа
+нажмите Enter в терминале, и сессия сохранится в `storage_state.json` рядом со скриптами. Перед входом во
 встречу поменяйте в профиле Zoom имя и фото: участники видят их, а Zoom сам
 подтягивает логотип компании по домену почты.
 
@@ -83,11 +121,11 @@ cp .env.example .env                                      # и заполнит�
 
 ```bash
 # встреча своего аккаунта: слушает, отвечает на «бот, …» в чате, выжимка в конце
-python3 bot.py --mn 81234567890 --pwd <пароль> --minutes 60
-python3 say.py "текст в чат встречи"
+python bot.py --mn 81234567890 --pwd <пароль> --minutes 60
+python say.py "текст в чат встречи"
 
 # любая встреча по ссылке https://zoom.us/j/<номер>?pwd=<pwd>: тихо слушает и делает выжимку
-python3 webjoin.py --mn <номер> --pwd <pwd> --name "AI-агент" --minutes 120
+python webjoin.py --mn <номер> --pwd <pwd> --name "AI-агент" --minutes 120
 ```
 
 Результаты лежат в `sessions/<дата>-<номер>-…/`:
@@ -101,8 +139,8 @@ python3 webjoin.py --mn <номер> --pwd <pwd> --name "AI-агент" --minute
 Второй экземпляр бота «говорит» wav-файл в микрофон:
 
 ```bash
-python3 bot.py --mn … --pwd … --no-stt --no-agent --port 8792 --name "Голос" --mic-file speech.wav --minutes 2 &
-python3 bot.py --mn … --pwd … --minutes 1.5
+python bot.py --mn … --pwd … --no-stt --no-agent --port 8792 --name "Голос" --mic-file speech.wav --minutes 2 &
+python bot.py --mn … --pwd … --minutes 1.5
 ```
 
 ## Этика и ограничения

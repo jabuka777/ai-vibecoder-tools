@@ -26,7 +26,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from env import load_env  # noqa: E402
+from env import load_env, need, tmpdir  # noqa: E402
 
 ENV = load_env()
 BOT_NAME = ENV.get("AGENT_NAME", "AI-агент")
@@ -44,7 +44,7 @@ ROLE = (
 
 
 def port() -> str:
-    return (HERE / "sessions" / "port").read_text().strip()
+    return (HERE / "sessions" / "port").read_text(encoding="utf-8").strip()
 
 
 def say(text: str):
@@ -55,11 +55,11 @@ def say(text: str):
 
 def context(sess: Path, n_lines=40, n_chat=20) -> str:
     tr = sess / "transcript.md"
-    lines = tr.read_text().splitlines()[-n_lines:] if (tr.exists() and n_lines) else []
+    lines = tr.read_text(encoding="utf-8").splitlines()[-n_lines:] if (tr.exists() and n_lines) else []
     chat = []
     ev = sess / "events.jsonl"
     if ev.exists():
-        for l in ev.read_text().splitlines():
+        for l in ev.read_text(encoding="utf-8").splitlines():
             try:
                 e = json.loads(l)
             except Exception:
@@ -74,11 +74,11 @@ def context(sess: Path, n_lines=40, n_chat=20) -> str:
 
 
 def ask(prompt: str, timeout=120) -> str | None:
-    """claude -p без MCP и без сохранения сессии, из /tmp — чтобы не подтянуть чужой CLAUDE.md."""
+    """claude -p без MCP и без сохранения сессии, из временной папки — чтобы не подтянуть чужой CLAUDE.md."""
     try:
-        r = subprocess.run(["claude", "-p", "--model", MODEL, "--strict-mcp-config",
+        r = subprocess.run([need("claude"), "-p", "--model", MODEL, "--strict-mcp-config",
                             "--no-session-persistence"], input=prompt, capture_output=True,
-                           text=True, timeout=timeout, cwd="/tmp")
+                           text=True, timeout=timeout, cwd=tmpdir(), encoding="utf-8")
     except Exception as e:
         print(f"[agent] claude -p: {e}", flush=True)
         return None
@@ -101,7 +101,7 @@ def listen(sess: Path):
     while True:
         time.sleep(2)
         if ev.exists() and ev.stat().st_size > ev_pos:
-            with open(ev) as f:
+            with open(ev, encoding="utf-8") as f:
                 f.seek(ev_pos)
                 new = f.read()
                 ev_pos = f.tell()
@@ -119,7 +119,7 @@ def listen(sess: Path):
                 if who != BOT_NAME and CHAT_CALL.search(txt):
                     answer(sess, who, txt)
         if tr.exists() and tr.stat().st_size > tr_pos:
-            with open(tr) as f:
+            with open(tr, encoding="utf-8") as f:
                 f.seek(tr_pos)
                 new = f.read()
                 tr_pos = f.tell()
@@ -143,25 +143,28 @@ def telegram(text: str):
 
 def summary(sess: Path):
     tr = sess / "transcript.md"
-    if not tr.exists() or not tr.read_text().strip():
+    if not tr.exists() or not tr.read_text(encoding="utf-8").strip():
         print("[agent] расшифровки нет — выжимку не делаю", flush=True)
         return
-    full = tr.read_text()[-60000:]
+    full = tr.read_text(encoding="utf-8")[-60000:]
     prompt = (
         "Ниже автоматическая расшифровка видеовстречи (с ошибками распознавания) и чат. "
         "Сделай выжимку по-русски, Telegram-markdown (*жирный*), без вступлений:\n"
         "*О чём встреча* — 1–2 предложения.\n*Главное* — 3–7 пунктов.\n"
         "*Договорённости и задачи* — кто что делает и к какому сроку, если звучало.\n"
-        "*Открытые вопросы* — если есть.\nНе выдумывай того, чего нет в тексте.\n\n"
+        "*Открытые вопросы* — если есть.\nНе выдумывай того, чего нет в тексте.\n"
+        "Если на встрече разбирали НЕСКОЛЬКО проектов, команд или докладчиков — раздели выжимку "
+        "по ним, каждый блок с заголовком (название проекта или имя), и не приписывай одному "
+        "то, что говорили о другом. Если не ясно, к кому относится реплика, — так и напиши.\n\n"
         f"РАСШИФРОВКА:\n{full}\n\n{context(sess, n_lines=0, n_chat=200)}"
     )
     text = ask(prompt, timeout=300)
     if not text:
         return
     out = sess / "summary.md"
-    out.write_text(f"🎥 *Встреча Zoom {sess.name[:10]}*\n\n{text}\n")
+    out.write_text(f"🎥 *Встреча Zoom {sess.name[:10]}*\n\n{text}\n", encoding="utf-8")
     print(f"[agent] выжимка: {out}", flush=True)
-    telegram(out.read_text())
+    telegram(out.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

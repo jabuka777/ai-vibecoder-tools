@@ -17,8 +17,11 @@ import sys
 import time
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from env import need, set_current, venv_python  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
-HOOK = (HERE / "static" / "audio-hook.js").read_text().replace(
+HOOK = (HERE / "static" / "audio-hook.js").read_text(encoding="utf-8").replace(
     "if (blob.size > 2000) fetch('/audio?ts=' + Date.now(), {method: 'POST', body: blob});",
     "if (blob.size > 2000) blob.arrayBuffer().then(b => { let s = ''; const u = new Uint8Array(b);"
     " for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));"
@@ -37,13 +40,13 @@ def main():
     mn = a.mn.replace(" ", "")
     sess = HERE / "sessions" / f"{dt.datetime.now():%Y-%m-%d_%H%M%S}-{mn}-web"
     (sess / "chunks").mkdir(parents=True)
-    (HERE / "sessions" / "current").unlink(missing_ok=True)
-    (HERE / "sessions" / "current").symlink_to(sess.name)
+    set_current(sess)
     print(f"сессия: {sess}", flush=True)
-    stt = subprocess.Popen([str(HERE / ".venv/bin/python"), str(HERE / "stt.py"), str(sess)])
+    need("ffmpeg")
+    stt = subprocess.Popen([venv_python(), str(HERE / "stt.py"), str(sess)])
 
     def ev(kind, data=None):
-        with open(sess / "events.jsonl", "a") as f:
+        with open(sess / "events.jsonl", "a", encoding="utf-8") as f:
             f.write(json.dumps({"kind": kind, "data": data, "ts": int(time.time() * 1000)}, ensure_ascii=False) + "\n")
 
     def on_audio(_src, ts, b64):

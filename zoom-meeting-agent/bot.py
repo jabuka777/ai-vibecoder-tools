@@ -31,7 +31,7 @@ from urllib.parse import parse_qs, urlparse
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
 sys.path.insert(0, str(HERE))
-from env import load_env  # noqa: E402
+from env import current, load_env, need, set_current, venv_python  # noqa: E402
 
 
 def b64url(b: bytes) -> str:
@@ -146,16 +146,16 @@ def main():
 
     sess = HERE / "sessions" / f"{dt.datetime.now():%Y-%m-%d_%H%M%S}-{mn}-{a.port}"
     st = State(sess, load_env())
-    (HERE / "sessions" / "current").unlink(missing_ok=True)
-    (HERE / "sessions" / "current").symlink_to(sess.name)
+    set_current(sess)
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(st))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    (HERE / "sessions" / "port").write_text(str(a.port))
+    (HERE / "sessions" / "port").write_text(str(a.port), encoding="utf-8")
     print(f"сессия: {sess}", flush=True)
 
     stt = None
     if not a.no_stt:
-        stt = subprocess.Popen([str(HERE / ".venv/bin/python"), str(HERE / "stt.py"), str(sess)])
+        need("ffmpeg")
+        stt = subprocess.Popen([venv_python(), str(HERE / "stt.py"), str(sess)])
     agent = None
     if not a.no_agent:
         agent = subprocess.Popen([sys.executable, str(HERE / "agent.py"), str(sess)])
