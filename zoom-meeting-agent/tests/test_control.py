@@ -1,5 +1,8 @@
 """Control-plane regressions with synthetic files and loopback only."""
 import contextlib
+import base64
+import hashlib
+import hmac
 from concurrent.futures import ThreadPoolExecutor
 import http.client
 import io
@@ -10,6 +13,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from unittest.mock import patch
 from urllib.parse import urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -49,6 +53,7 @@ class ControlTests(unittest.TestCase):
     def test_all_routes_require_session_token(self):
         for method, route in (("GET", "/"), ("GET", "/signature?mn=123456789"),
                               ("GET", "/outbox"), ("POST", "/audio?ts=1"),
+                              ("POST", "/outbox/claim"), ("POST", "/outbox/ack"),
                               ("POST", "/event"), ("POST", "/say"), ("POST", "/left")):
             with self.subTest(route=route):
                 self.assertEqual(self.request(method, route, b"{}" if method == "POST" else None, token=False)[0], 401)
@@ -86,7 +91,7 @@ class ControlTests(unittest.TestCase):
     def test_traversal_absolute_and_duplicate_names_are_rejected(self):
         outside = self.root / "outside.webm"
         outside.write_bytes(b"original")
-        for name in ("../../outside", str(outside)[:-5], "../outside", "1/2", "１", "1.webm", "1\\2"):
+        for name in ("../../outside", str(outside)[:-5], "../outside", "1/2", "１", "1.webm", "1\\2", '-1', '9' * 21):
             self.assertEqual(self.request("POST", "/audio?" + urlencode({"ts": name}), b"audio")[0], 400)
         self.assertEqual(outside.read_bytes(), b"original")
         self.assertEqual(self.request("POST", "/audio?ts=1&ts=2", b"audio")[0], 400)
@@ -136,22 +141,75 @@ class ControlTests(unittest.TestCase):
         self.assertEqual(self.request("POST", "/say", b"", headers={"Content-Length": "-1"})[0], 400)
         self.assertEqual(self.request("POST", "/say", b"", headers={"Transfer-Encoding": "chunked"})[0], 400)
 
-    def test_say_queue_bound_and_drain(self):
+    def test_say_queue_bound_and_acknowledgement(self):
         for value in ({"message": 123}, {"message": ""}, {"message": "x" * (control.MAX_MESSAGE_CHARS + 1)}, []):
             self.assertEqual(self.request("POST", "/say", json.dumps(value).encode())[0], 400)
         self.assertEqual(self.request("POST", "/say", b'{"message":"synthetic"}')[0], 200)
-        self.assertEqual(json.loads(self.request("GET", "/outbox")[1]), ["synthetic"])
-        self.assertEqual(json.loads(self.request("GET", "/outbox")[1]), [])
-        self.state.outbox[:] = ["synthetic"] * control.MAX_QUEUE
+        first = json.loads(self.request("GET", "/outbox")[1])
+        self.assertEqual(first[0]['message'], 'synthetic')
+        self.assertEqual(json.loads(self.request("GET", "/outbox")[1]), first)
+        payload = json.dumps({'id': first[0]['id']}).encode()
+        self.assertEqual(self.request('POST', '/outbox/claim', payload)[0], 200)
+        self.assertEqual(self.request('POST', '/outbox/claim', payload)[0], 409)
+        ack = json.dumps({'id': first[0]['id'], 'state': 'sent'}).encode()
+        self.assertEqual(self.request('POST', '/outbox/ack', ack)[0], 200)
+        self.assertEqual(self.request('POST', '/outbox/ack', ack)[0], 200)
+        self.assertEqual(json.loads((self.state.sess / 'outbox.json').read_text())[0]['state'], 'sent')
+        if os.name != 'nt':
+            self.assertEqual((self.state.sess / 'outbox.json').stat().st_mode & 0o777, 0o600)
+        self.state.outbox[:] = [{'id': str(i), 'message': 'synthetic', 'state': 'queued'}
+                               for i in range(control.MAX_QUEUE)]
         self.assertEqual(self.request("POST", "/say", b'{"message":"overflow"}')[0], 429)
         self.assertEqual(len(self.state.outbox), control.MAX_QUEUE)
 
+    def test_failed_or_uncertain_delivery_is_retained_without_automatic_retry(self):
+        for outcome in ('failed', 'uncertain'):
+            message_id = self.state.enqueue('synthetic')
+            payload = json.dumps({'id': message_id}).encode()
+            self.assertEqual(self.request('POST', '/outbox/claim', payload)[0], 200)
+            ack = json.dumps({'id': message_id, 'state': outcome}).encode()
+            self.assertEqual(self.request('POST', '/outbox/ack', ack)[0], 200)
+            self.assertEqual(self.request('POST', '/outbox/claim', payload)[0], 409)
+            ledger = json.loads(self.request('GET', '/outbox')[1])
+            self.assertEqual(next(item['state'] for item in ledger if item['id'] == message_id), outcome)
+
+    def test_slow_body_times_out_and_server_continues(self):
+        with patch.object(control, 'REQUEST_TIMEOUT', 0.05):
+            self.assertEqual(self.request('POST', '/say', b'x', headers={'Content-Length': '100'})[0], 408)
+        self.assertEqual(self.request('GET', '/outbox')[0], 200)
+
+    def test_sdk_error_journal_does_not_echo_credentials(self):
+        payload = {'kind': 'join_error', 'data': {'errorCode': 300, 'password': 'CANARY_PASSWORD',
+                   'signature': 'CANARY_SIGNATURE', 'nested': {'url': 'CANARY_URL'}}}
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(self.request('POST', '/event', json.dumps(payload).encode())[0], 200)
+        journal = (self.state.sess / 'events.jsonl').read_text()
+        self.assertNotIn('CANARY', journal)
+        self.assertEqual(json.loads(journal)['data'], {'error_code': 300})
+
     def test_signature_only_for_bound_meeting(self):
         self.assertEqual(self.request("GET", "/signature?mn=other")[0], 400)
+        self.assertEqual(self.request('GET', '/signature?mn=')[0], 400)
         self.assertEqual(self.request("GET", "/signature?mn=123456789&mn=other")[0], 400)
         status, body = self.request("GET", "/signature?mn=123456789")
         self.assertEqual(status, 200)
-        self.assertEqual(len(json.loads(body)["signature"].split(".")), 3)
+        head, payload, signature = json.loads(body)['signature'].split('.')
+        decode = lambda value: base64.urlsafe_b64decode(value + '=' * (-len(value) % 4))
+        claims = json.loads(decode(payload))
+        self.assertEqual(claims['mn'], '123456789')
+        self.assertEqual(claims['role'], 0)
+        self.assertEqual(claims['exp'] - claims['iat'], 7200)
+        expected = hmac.new(b'synthetic', (head + '.' + payload).encode(), hashlib.sha256).digest()
+        self.assertEqual(decode(signature), expected)
+
+    def test_outbox_history_remains_bounded_without_dropping_active_work(self):
+        first_id = self.state.enqueue('must remain queued')
+        for _ in range(control.MAX_QUEUE + 5):
+            message_id = self.state.enqueue('synthetic delivered')
+            self.assertEqual(self.state.delivery(message_id, 'claim'), 200)
+            self.assertEqual(self.state.delivery(message_id, 'sent'), 200)
+        self.assertLessEqual(len(self.state.outbox), control.MAX_QUEUE)
+        self.assertTrue(any(item['id'] == first_id and item['state'] == 'queued' for item in self.state.outbox))
 
     def test_events_have_server_timestamp_and_health_state(self):
         with contextlib.redirect_stdout(io.StringIO()):

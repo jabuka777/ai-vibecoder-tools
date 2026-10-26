@@ -40,8 +40,8 @@ class RoutingTests(unittest.TestCase):
         self.assertTrue(say(first.sess, "SYNTHETIC_FOR_A"))
         self.assertTrue(say(second.sess, "SYNTHETIC_FOR_B"))
         self.assertTrue(say(first.sess, "SECOND_SYNTHETIC_FOR_A"))
-        self.assertEqual(first.outbox, ["SYNTHETIC_FOR_A", "SECOND_SYNTHETIC_FOR_A"])
-        self.assertEqual(second.outbox, ["SYNTHETIC_FOR_B"])
+        self.assertEqual([item['message'] for item in first.outbox], ["SYNTHETIC_FOR_A", "SECOND_SYNTHETIC_FOR_A"])
+        self.assertEqual([item['message'] for item in second.outbox], ["SYNTHETIC_FOR_B"])
 
     def test_other_session_port_with_original_token_fails_closed(self):
         first, second = self.states

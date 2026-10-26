@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Zoom SDK listener: session-bound controls, local STT, optional cloud LLM."""
 import argparse
+import math
 from pathlib import Path
 import signal
 import subprocess
@@ -10,7 +11,7 @@ import time
 from urllib.parse import urlencode
 
 from control import State, create_server
-from env import load_env, need
+from env import load_env, need, meeting_password
 from runtime import CaptureGuard, Monitor, finish, new_session, start_stt
 
 HERE = Path(__file__).resolve().parent
@@ -25,7 +26,8 @@ def bind_control(context, state):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mn', required=True)
-    parser.add_argument('--pwd', default='')
+    parser.add_argument('--pwd', help=argparse.SUPPRESS)
+    parser.add_argument('--password-file', type=Path)
     parser.add_argument('--name', default=None)
     parser.add_argument('--port', type=int, default=0, help='0: allocate a separate free port')
     parser.add_argument('--headed', action='store_true')
@@ -35,9 +37,14 @@ def main(argv=None):
     parser.add_argument('--model')
     parser.add_argument('--mic-file', type=Path)
     parser.add_argument('--minutes', type=float, default=0)
+    parser.add_argument('--max-replies', type=int, default=100)
+    parser.add_argument('--replies-per-minute', type=int, default=6)
     args = parser.parse_args(argv)
-    if args.minutes < 0 or not 0 <= args.port <= 65535:
+    password = meeting_password(args, parser)
+    if not math.isfinite(args.minutes) or args.minutes < 0 or not 0 <= args.port <= 65535:
         parser.error('Invalid minutes or port')
+    if args.max_replies < 1 or not 1 <= args.replies_per_minute <= 60:
+        parser.error('Invalid reply limits')
     if args.no_agent:
         args.llm = 'none'
     if args.no_stt and args.llm != 'none':
@@ -64,7 +71,9 @@ def main(argv=None):
         if not args.no_stt:
             monitor.stt = start_stt(session)
         if args.llm != 'none':
-            command = [sys.executable, str(HERE / 'agent.py'), str(session), '--backend', args.llm, '--name', args.name or settings.get('AGENT_NAME', 'AI-агент')]
+            command = [sys.executable, str(HERE / 'agent.py'), str(session), '--backend', args.llm,
+                       '--name', args.name or settings.get('AGENT_NAME', 'AI-агент'),
+                       '--max-replies', str(args.max_replies), '--replies-per-minute', str(args.replies_per_minute)]
             if args.model:
                 command += ['--model', args.model]
             monitor.agent = subprocess.Popen(command)
@@ -81,7 +90,7 @@ def main(argv=None):
                 page = context.new_page()
                 capture = CaptureGuard(page, monitor)
                 try:
-                    page.goto(f'http://127.0.0.1:{state.port}/?' + urlencode({'mn': meeting, 'pwd': args.pwd,
+                    page.goto(f'http://127.0.0.1:{state.port}/?' + urlencode({'mn': meeting, 'pwd': password,
                               'name': args.name or settings.get('AGENT_NAME', 'AI-агент'),
                               'unmute': int(bool(args.mic_file))}))
                     capture.check()

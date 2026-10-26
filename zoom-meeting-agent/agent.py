@@ -10,6 +10,7 @@ import json
 import re
 import sys
 import time
+from collections import deque
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -17,7 +18,7 @@ sys.path.insert(0, str(HERE))
 from env import load_env  # noqa: E402
 
 BOT_NAME = "AI-агент"
-CHAT_CALL = re.compile(r"(^\s*\?)|\bбот\b", re.I)
+CHAT_CALL = re.compile(r"^\s*(?:\?|бот(?:[,!:?\s]|$))", re.I)
 VOICE_CALL = re.compile(r"(эй|окей|ок|слушай)[,\s]+бот|бот[,!:]\s*\S", re.I)
 
 ROLE = (
@@ -30,20 +31,116 @@ ROLE = (
 
 
 from say import say
-from llm import call
+from llm import call, ModelError
 from minutes import build_minutes
+
+MAX_LINE_BYTES = 64 * 1024
+
+
+def parse_event(line):
+    try:
+        event = json.loads(line)
+        if not isinstance(event, dict) or not isinstance(event.get('kind'), str):
+            return None
+        if event['kind'] in ('chat', 'chat_sent'):
+            data = event.get('data')
+            if not isinstance(data, dict):
+                return None
+            if event['kind'] == 'chat':
+                content = data.get('content')
+                if (not isinstance(data.get('sender'), str) or not isinstance(content, dict)
+                        or not isinstance(content.get('text'), str)):
+                    return None
+            elif not isinstance(data.get('m'), str):
+                return None
+        return event
+    except (ValueError, TypeError, RecursionError):
+        return None
+
+
+class LineTail:
+    """Keep incomplete UTF-8/JSONL writes until newline, with bounded memory."""
+    def __init__(self, path, at_end=True):
+        self.path = path
+        self.position = path.stat().st_size if at_end and path.exists() else 0
+        self.pending = b''
+        self.discarding = False
+        self.errors = 0
+        self.anchor = b''
+
+    def read(self):
+        if not self.path.exists():
+            return []
+        with self.path.open('rb') as stream:
+            if self.path.stat().st_size < self.position:
+                self.errors += 1
+                raise ValueError('Source journal was truncated')
+            if self.anchor:
+                stream.seek(self.position - len(self.anchor))
+                if stream.read(len(self.anchor)) != self.anchor:
+                    self.errors += 1
+                    raise ValueError('Source journal changed before read position')
+            stream.seek(self.position)
+            data = stream.read(128 * 1024)
+            self.position = stream.tell()
+            self.anchor = (self.anchor + data)[-64:]
+        lines = []
+        for part in data.splitlines(keepends=True):
+            complete = part.endswith(b'\n')
+            if not self.discarding:
+                self.pending += part
+                if len(self.pending) > MAX_LINE_BYTES:
+                    self.errors += 1
+                    self.pending, self.discarding = b'', True
+                elif complete:
+                    try:
+                        lines.append(self.pending.decode('utf-8'))
+                    except UnicodeDecodeError:
+                        self.errors += 1
+                    self.pending = b''
+            if complete:
+                self.discarding = False
+        return lines
+
+
+class ReplyBudget:
+    def __init__(self, maximum=100, per_minute=6):
+        self.maximum, self.per_minute = maximum, per_minute
+        self.total = 0
+        self.recent = deque()
+
+    def allow(self):
+        now = time.monotonic()
+        while self.recent and now - self.recent[0] >= 60:
+            self.recent.popleft()
+        if self.total >= self.maximum or len(self.recent) >= self.per_minute:
+            return False
+        self.total += 1
+        self.recent.append(now)
+        return True
+
+
+def tail_text(path):
+    if not path.exists():
+        return ''
+    with path.open('rb') as stream:
+        stream.seek(max(0, path.stat().st_size - 128 * 1024))
+        offset = stream.tell()
+        data = stream.read(128 * 1024)
+    if offset:
+        data = data.partition(b'\n')[2]
+    return data.decode('utf-8', errors='replace')
 
 
 def context(sess: Path, n_lines=40, n_chat=20) -> str:
     tr = sess / "transcript.md"
-    lines = tr.read_text(encoding="utf-8").splitlines()[-n_lines:] if (tr.exists() and n_lines) else []
+    lines = tail_text(tr).splitlines()[-n_lines:] if n_lines else []
     chat = []
     ev = sess / "events.jsonl"
     if ev.exists():
-        for l in ev.read_text(encoding="utf-8").splitlines():
-            try:
-                e = json.loads(l)
-            except Exception:
+        for l in tail_text(ev).splitlines():
+            e = parse_event(l)
+            if e is None:
                 continue
             if e.get("kind") == "chat":
                 d = e.get("data") or {}
@@ -67,40 +164,53 @@ def answer(sess: Path, who: str, question: str, *, backend="none", model=None):
         print("[agent] ответ поставлен в очередь выбранной сессии", flush=True)
 
 
-def listen(sess: Path, *, backend="none", model=None):
+def listen(sess: Path, *, backend="none", model=None, max_replies=100, replies_per_minute=6):
     ev, tr = sess / "events.jsonl", sess / "transcript.md"
-    ev_pos = ev.stat().st_size if ev.exists() else 0
-    tr_pos = tr.stat().st_size if tr.exists() else 0
+    events, speech = LineTail(ev), LineTail(tr)
+    budget = ReplyBudget(max_replies, replies_per_minute)
+    invalid, limited, failures = 0, 0, 0
+
+    def health():
+        from runtime import atomic_json
+        atomic_json(sess / 'agent-health.json', {'ts': time.time(), 'reply_attempts': budget.total,
+                    'invalid_records': invalid + events.errors + speech.errors,
+                    'rate_limited': limited, 'reply_failures': failures})
+
+    def reply(who, question):
+        nonlocal limited, failures
+        if not budget.allow():
+            limited += 1
+        else:
+            try:
+                answer(sess, who, question, backend=backend, model=model)
+            except (ModelError, OSError, ValueError) as exc:
+                failures += 1
+                print(f'[agent] reply failed: {type(exc).__name__}', flush=True)
+        health()
+
     last_voice = 0.0
     while True:
         time.sleep(2)
-        if ev.exists() and ev.stat().st_size > ev_pos:
-            with open(ev, encoding="utf-8") as f:
-                f.seek(ev_pos)
-                new = f.read()
-                ev_pos = f.tell()
-            for l in new.splitlines():
-                try:
-                    e = json.loads(l)
-                except Exception:
-                    continue
-                if e.get("kind") == "left":
-                    return
-                if e.get("kind") != "chat":
-                    continue
-                d = e.get("data") or {}
-                who, txt = d.get("sender", ""), (d.get("content") or {}).get("text", "")
-                if who != BOT_NAME and CHAT_CALL.search(txt):
-                    answer(sess, who, txt, backend=backend, model=model)
-        if tr.exists() and tr.stat().st_size > tr_pos:
-            with open(tr, encoding="utf-8") as f:
-                f.seek(tr_pos)
-                new = f.read()
-                tr_pos = f.tell()
-            for l in new.splitlines():
-                if VOICE_CALL.search(l) and time.time() - last_voice > 30:
-                    last_voice = time.time()
-                    answer(sess, "участник голосом", re.sub(r"^\[[\d:]+\]\s*", "", l), backend=backend, model=model)
+        for l in events.read():
+            e = parse_event(l)
+            if e is None:
+                invalid += 1
+                health()
+                continue
+            if e.get("kind") == "left":
+                return
+            if e.get("kind") != "chat":
+                continue
+            d = e.get("data") or {}
+            who, txt = d.get("sender", ""), (d.get("content") or {}).get("text", "")
+            named_call = re.match(r'^\s*' + re.escape(BOT_NAME) + r'(?:[,!:?\s]|$)', txt, re.I)
+            if who != BOT_NAME and (CHAT_CALL.search(txt) or named_call):
+                reply(who, txt)
+        for l in speech.read():
+            if VOICE_CALL.search(l) and time.time() - last_voice > 30:
+                last_voice = time.time()
+                reply("участник голосом", re.sub(r"^\[[\d:]+\]\s*", "", l))
+        health()
 
 
 def summary(sess: Path, *, backend="none", model=None):
@@ -154,13 +264,18 @@ def main():
     parser.add_argument("--backend", choices=["claude", "codex"], required=True)
     parser.add_argument("--model")
     parser.add_argument("--name")
+    parser.add_argument('--max-replies', type=int, default=100)
+    parser.add_argument('--replies-per-minute', type=int, default=6)
     args = parser.parse_args()
+    if args.max_replies < 1 or not 1 <= args.replies_per_minute <= 60:
+        parser.error('Reply limits must be positive; per-minute limit is at most 60')
     global BOT_NAME
     BOT_NAME = args.name or load_env().get("AGENT_NAME", "AI-агент")
     try:
         if args.summary:
             return 0 if summary(args.session.resolve(), backend=args.backend, model=args.model) else 1
-        listen(args.session.resolve(), backend=args.backend, model=args.model)
+        listen(args.session.resolve(), backend=args.backend, model=args.model,
+               max_replies=args.max_replies, replies_per_minute=args.replies_per_minute)
         return 0
     except Exception as exc:
         print(f"[agent] stopped: {type(exc).__name__}", file=sys.stderr, flush=True)

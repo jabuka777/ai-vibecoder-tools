@@ -27,7 +27,7 @@ def release_paths():
             raise RuntimeError(f'Private data path is tracked: {name}')
         if path.name == '.env.example' or path.name == '.gitignore':
             yield path
-        elif path.name in {'.env', 'storage_state.json', 'control.json'} or '.min.js' in path.name:
+        elif path.name in {'.env', 'storage_state.json', 'control.json', 'outbox.json', 'meeting-password.txt'} or '.min.js' in path.name:
             raise RuntimeError(f'Private/generated file is tracked: {name}')
         elif path.suffix in SOURCE_EXTENSIONS:
             yield path

@@ -3,13 +3,14 @@
 import argparse
 import base64
 import json
+import math
 from pathlib import Path
 import re
 import signal
 import time
 from urllib.parse import urlencode
 
-from env import APP_HOME, need
+from env import APP_HOME, need, meeting_password
 from runtime import CaptureGuard, Monitor, atomic_json, finish, new_session, start_stt
 
 HERE = Path(__file__).resolve().parent
@@ -33,14 +34,16 @@ def classify_page(page):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mn', required=True)
-    parser.add_argument('--pwd', default='')
+    parser.add_argument('--pwd', help=argparse.SUPPRESS)
+    parser.add_argument('--password-file', type=Path)
     parser.add_argument('--name', default='AI meeting assistant')
     parser.add_argument('--minutes', type=float, default=180)
     parser.add_argument('--llm', choices=['none', 'claude', 'codex'], default='none')
     parser.add_argument('--model')
     parser.add_argument('--no-summary', action='store_true', help='alias for --llm none')
     args = parser.parse_args(argv)
-    if args.minutes <= 0:
+    password = meeting_password(args, parser)
+    if not math.isfinite(args.minutes) or args.minutes <= 0:
         parser.error('--minutes must be positive')
     if args.no_summary:
         args.llm = 'none'
@@ -84,7 +87,7 @@ def main(argv=None):
                 context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))
                 page = context.new_page()
                 capture = CaptureGuard(page, monitor)
-                page.goto('https://app.zoom.us/wc/join/' + args.mn.replace(' ', '') + '?' + urlencode({'pwd': args.pwd}))
+                page.goto('https://app.zoom.us/wc/join/' + args.mn.replace(' ', '') + '?' + urlencode({'pwd': password}))
                 capture.check()
                 joined = False
                 while time.monotonic() - started < args.minutes * 60:

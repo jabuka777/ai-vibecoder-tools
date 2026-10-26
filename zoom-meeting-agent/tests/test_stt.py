@@ -3,6 +3,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -11,6 +12,7 @@ import threading
 import time
 import types
 import unittest
+from unittest.mock import patch
 
 MODULE = Path(__file__).resolve().parents[1] / "stt.py"
 spec = importlib.util.spec_from_file_location("meeting_stt", MODULE)
@@ -72,6 +74,32 @@ class STTTests(unittest.TestCase):
         self.assertNotIn("synthetic accepted decision", ledger)
         self.assertEqual(json.loads(ledger)["error_type"], "ValueError")
         self.assertEqual(self.health()["error_count"], 1)
+
+    def test_real_ffmpeg_bad_chunk_does_not_block_next_audio(self):
+        ffmpeg = shutil.which('ffmpeg')
+        if not ffmpeg:
+            self.skipTest('ffmpeg unavailable')
+        try:
+            import numpy
+        except ImportError:
+            self.skipTest('numpy unavailable')
+        bad = self.chunk('1000000000000.webm', b'not-a-media-file')
+        good = self.session / 'chunks' / '1000000020000.webm'
+        subprocess.run([ffmpeg, '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
+                        'sine=frequency=600:duration=0.3', '-c:a', 'libopus', str(good)],
+                       check=True, capture_output=True, timeout=10)
+        class DecodedModel:
+            def transcribe(self, value, **kwargs):
+                if not isinstance(value, numpy.ndarray) or not value.size:
+                    raise AssertionError('Expected real decoded audio samples')
+                return iter([types.SimpleNamespace(text='synthetic decoded tone')]), None
+        with contextlib.redirect_stderr(io.StringIO()):
+            result = stt.run_session(self.session, once=True, model_factory=DecodedModel,
+                                    decoder=lambda path: stt.load(path, ffmpeg))
+        self.assertEqual(result, 1)
+        self.assertFalse(bad.exists())
+        self.assertIn('synthetic decoded tone', (self.session / 'transcript.md').read_text())
+        self.assertEqual(self.health()['error_count'], 1)
         self.assertEqual(self.health()["state"], "stopped")
         self.assertIsInstance(self.health()["last_processed"], float)
         # A drain/restart must retain the incomplete status, not turn it green.
@@ -85,6 +113,33 @@ class STTTests(unittest.TestCase):
         self.assertEqual(self.run_worker(), 0)
         self.assertEqual((self.session / "transcript.md").read_text(), first)
         self.assertEqual(self.health()["processed_count"], 1)
+
+    def test_crash_after_transcript_before_done_does_not_duplicate(self):
+        self.chunk('1000000000000.webm')
+        original = stt.atomic_text
+        done_writes = []
+        def fail_done(path, text):
+            if path.name == '.stt_done':
+                done_writes.append(True)
+                if len(done_writes) == 2:
+                    raise OSError('synthetic persistence failure')
+            return original(path, text)
+        with patch.object(stt, 'atomic_text', side_effect=fail_done), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(self.run_worker(), 2)
+        before = (self.session / 'transcript.md').read_text()
+        with patch.object(Model, 'transcribe', side_effect=AssertionError('Committed chunk must not be decoded again')):
+            self.assertEqual(self.run_worker(), 0)
+        self.assertEqual((self.session / 'transcript.md').read_text(), before)
+        self.assertEqual(before.count('recognized synthetic speech'), 1)
+
+    def test_late_older_chunk_restores_chronological_order(self):
+        self.chunk('1000000020000.webm')
+        self.assertEqual(self.run_worker(), 0)
+        self.chunk('1000000000000.webm')
+        self.assertEqual(self.run_worker(), 0)
+        lines = (self.session / 'transcript.md').read_text().splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertLess(lines[0][:10], lines[1][:10])
 
     def test_interrupted_drain_reports_pending_input(self):
         self.chunk("1000000000000.webm")

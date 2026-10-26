@@ -9,6 +9,7 @@ import secrets
 import tempfile
 import threading
 import time
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
@@ -71,6 +72,59 @@ class State:
             raise ValueError("chunks must be a real session directory")
         self.chunks.mkdir(exist_ok=True)
 
+    def save_outbox(self):
+        # Called under self.lock. Retain a recoverable, private delivery ledger.
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', dir=self.sess,
+                                         prefix='.outbox-', delete=False) as stream:
+            json.dump(self.outbox, stream, ensure_ascii=False)
+            stream.flush()
+            os.fsync(stream.fileno())
+            temporary = stream.name
+        os.replace(temporary, self.sess / 'outbox.json')
+
+    def enqueue(self, message):
+        with self.lock:
+            active = [item for item in self.outbox if item['state'] in ('queued', 'sending')]
+            if len(active) >= MAX_QUEUE:
+                return None
+            # Bound memory and snapshot size while keeping all unconfirmed work.
+            history = [item for item in self.outbox if item['state'] not in ('queued', 'sending')]
+            self.outbox = (history + active)[-(MAX_QUEUE - 1):] if len(active) < MAX_QUEUE - 1 else active
+            item = {'id': uuid.uuid4().hex, 'message': message, 'state': 'queued'}
+            self.outbox.append(item)
+            try:
+                self.save_outbox()
+            except OSError:
+                self.outbox.remove(item)
+                raise
+            return item['id']
+
+    def delivery(self, message_id, action):
+        with self.lock:
+            item = next((item for item in self.outbox if item['id'] == message_id), None)
+            if item is None:
+                return 404
+            old = item['state']
+            if action == 'claim':
+                if old != 'queued':
+                    return 409
+                new = 'sending'
+            else:
+                if action not in ('sent', 'failed', 'uncertain'):
+                    return 400
+                if old == action:
+                    return 200  # A repeated acknowledgement must not re-send.
+                if old != 'sending':
+                    return 409
+                new = action
+            item['state'] = new
+            try:
+                self.save_outbox()
+            except OSError:
+                item['state'] = old
+                raise
+            return 200
+
     def event(self, rec: dict):
         """Keep a bounded JSON event with an authoritative receipt timestamp."""
         clean = _event(rec)
@@ -113,6 +167,12 @@ def _event(rec):
         if not isinstance(data, dict) or not isinstance(data.get("m"), str):
             raise ValueError("invalid sent chat message")
         clean["data"] = {"m": data["m"]}
+    elif clean['kind'].endswith('_error'):
+        # SDK errors may echo join parameters, credentials or URLs. Retain only
+        # a numeric diagnostic code; never serialize arbitrary error objects.
+        data = clean['data']
+        code = data.get('errorCode') if isinstance(data, dict) else None
+        clean['data'] = {'error_code': code if type(code) is int else None}
     if len(json.dumps(clean, ensure_ascii=False, allow_nan=False).encode("utf-8")) > MAX_JSON_BYTES:
         raise ValueError("event is too large")
     return clean
@@ -208,7 +268,7 @@ def make_handler(st):
                 return self._send(200, body)
             if u.path == "/outbox":
                 with st.lock:
-                    messages, st.outbox = st.outbox, []
+                    messages = [dict(item) for item in st.outbox]
                 return self._send(200, json.dumps(messages, ensure_ascii=False).encode())
             if u.path == "/left":
                 return self._send(405)
@@ -226,7 +286,7 @@ def make_handler(st):
             if not self._authorized():
                 return
             u = urlparse(self.path)
-            if u.path not in ("/audio", "/event", "/say", "/left"):
+            if u.path not in ("/audio", "/event", "/say", "/left", "/outbox/claim", "/outbox/ack"):
                 return self._send(404)
             lengths = self.headers.get_all("Content-Length", [])
             if self.headers.get("Transfer-Encoding") or len(lengths) != 1 or not re.fullmatch(r"[0-9]{1,10}", lengths[0]):
@@ -250,16 +310,23 @@ def make_handler(st):
                 value = json.loads(data)
                 if u.path == "/event":
                     st.event(value)
+                elif u.path.startswith('/outbox/'):
+                    if not isinstance(value, dict) or not isinstance(value.get('id'), str):
+                        return self._send(400)
+                    action = 'claim' if u.path.endswith('/claim') else value.get('state')
+                    return self._send(st.delivery(value['id'], action))
                 else:
                     message = value.get("message") if isinstance(value, dict) else None
                     if not isinstance(message, str) or not message.strip() or len(message) > MAX_MESSAGE_CHARS:
                         return self._send(400)
-                    with st.lock:
-                        if len(st.outbox) >= MAX_QUEUE:
-                            return self._send(429)
-                        st.outbox.append(message)
+                    message_id = st.enqueue(message)
+                    if message_id is None:
+                        return self._send(429)
+                    return self._send(200, json.dumps({'id': message_id, 'state': 'queued'}).encode())
             except (ValueError, TypeError, RecursionError):
                 return self._send(400)
+            except OSError:
+                return self._send(500)
             self._send(200)
 
         def _audio(self, u, data):

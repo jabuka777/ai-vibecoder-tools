@@ -54,3 +54,18 @@ def need(tool: str) -> str:
     if not path:
         sys.exit(f"Не найден «{tool}» в PATH — установите его (см. README, раздел «Установка»).")
     return path
+
+
+def meeting_password(args, parser):
+    if args.pwd is not None:
+        parser.error('--pwd exposes the password in process arguments; use --password-file instead')
+    if args.password_file is None:
+        return ''
+    try:
+        with args.password_file.open(encoding='utf-8') as stream:
+            value = stream.read(4097).rstrip('\r\n')
+        if len(value) > 4096:
+            parser.error('Meeting password file exceeds the limit')
+        return value
+    except (OSError, UnicodeError):
+        parser.error('Cannot read meeting password file')

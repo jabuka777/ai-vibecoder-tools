@@ -2,6 +2,7 @@
 import datetime as dt
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import time
@@ -64,6 +65,8 @@ class Monitor:
 
     def tick(self, joined=False, last_audio=None, audio_source=False):
         now = time.monotonic()
+        if shutil.disk_usage(self.session).free < 64 * 1024 * 1024:
+            self.fail('disk_space_low')
         self.last_audio, self.audio_source = last_audio, audio_source
         if audio_source:
             self.audio_source_seen = True

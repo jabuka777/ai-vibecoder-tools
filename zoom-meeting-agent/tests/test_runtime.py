@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, Mock, patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import runtime
 import webjoin
+import bot
 import agent
 
 
@@ -57,6 +58,44 @@ class PageClassificationTests(unittest.TestCase):
         self.assertEqual(webjoin.classify_page(Page("This meeting has ended", 1, True)), "ended")
 
 
+class StartupCleanupTests(unittest.TestCase):
+    def test_actual_child_and_sdk_server_close_after_browser_launch_failure(self):
+        from playwright import sync_api
+        from control import create_server
+        for module in (webjoin, bot):
+            with self.subTest(mode=module.__name__), tempfile.TemporaryDirectory() as directory:
+                session = Path(directory)
+                (session / 'chunks').mkdir()
+                child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+                servers = []
+                def server_factory(*args, **kwargs):
+                    server = create_server(*args, **kwargs)
+                    servers.append(server)
+                    return server
+                manager = MagicMock()
+                manager.__enter__.return_value.chromium.launch.side_effect = RuntimeError('synthetic browser launch failure')
+                try:
+                    with contextlib.ExitStack() as stack:
+                        stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+                        stack.enter_context(patch.object(sync_api, 'sync_playwright', return_value=manager))
+                        stack.enter_context(patch.object(module, 'new_session', return_value=session))
+                        stack.enter_context(patch.object(module, 'start_stt', return_value=child))
+                        stack.enter_context(patch.object(module.signal, 'signal'))
+                        stack.enter_context(patch.object(runtime.subprocess, 'run', return_value=Mock(returncode=0)))
+                        if module is bot:
+                            stack.enter_context(patch.object(bot, 'load_env', return_value={
+                                'ZOOM_SDK_CLIENT_ID': 'synthetic', 'ZOOM_SDK_CLIENT_SECRET': 'synthetic'}))
+                            stack.enter_context(patch.object(bot, 'create_server', side_effect=server_factory))
+                        self.assertEqual(module.main(['--mn', '123456789']), 1)
+                    self.assertIsNotNone(child.poll())
+                    self.assertTrue(all(server.socket.fileno() == -1 for server in servers))
+                    self.assertTrue(json.loads((session / 'status.json').read_text())['incomplete'])
+                finally:
+                    if child.poll() is None:
+                        child.kill()
+                        child.wait(timeout=5)
+
+
 class RuntimeTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -89,6 +128,28 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, name + "_exited"):
                 monitor.tick(True, 999, True)
             self.assertTrue(self.status()["incomplete"])
+
+    def test_low_disk_space_stops_with_explicit_incomplete_status(self):
+        monitor = runtime.Monitor(self.session)
+        with patch.object(runtime.shutil, 'disk_usage', return_value=Mock(free=1024)):
+            with self.assertRaisesRegex(RuntimeError, 'disk_space_low'):
+                monitor.tick(True, 999, True)
+        self.assertTrue(self.status()['incomplete'])
+
+    @unittest.skipIf(sys.platform == 'win32', 'POSIX signal escalation')
+    def test_real_unresponsive_child_is_killed_and_reaped(self):
+        process = subprocess.Popen([sys.executable, '-c',
+            'import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print("ready",flush=True); time.sleep(60)'],
+            stdout=subprocess.PIPE, text=True)
+        try:
+            self.assertEqual(process.stdout.readline().strip(), 'ready')
+            runtime.stop_process(process, timeout=0.05)
+            self.assertIsNotNone(process.poll())
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=5)
+            process.stdout.close()
 
     def test_stale_heartbeat_fails_while_process_is_alive(self):
         monitor = runtime.Monitor(self.session, stt=Mock(poll=Mock(return_value=None)))

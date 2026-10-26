@@ -2,6 +2,7 @@
 .venv/
 sessions/
 storage_state.json
+meeting-password.txt
 *.wav
 *.mp3
 *.webm

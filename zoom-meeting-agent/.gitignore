@@ -1,6 +1,7 @@
 .env
 .venv/
 storage_state.json
+meeting-password.txt
 sessions/
 static/lib/
 static/zoom-meeting-*.min.js

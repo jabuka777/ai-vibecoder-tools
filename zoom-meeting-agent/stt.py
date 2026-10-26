@@ -19,6 +19,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import uuid
@@ -108,6 +109,35 @@ def quarantine(session, chunk, exc):
         stream.write(json.dumps(record, ensure_ascii=False) + "\n")
 
 
+def atomic_text(path, text):
+    with tempfile.NamedTemporaryFile('w', encoding='utf-8', dir=path.parent,
+                                     prefix='.stt-', delete=False) as stream:
+        stream.write(text)
+        stream.flush()
+        os.fsync(stream.fileno())
+        temporary = stream.name
+    os.replace(temporary, path)
+
+
+def recover_transcript(session, seen):
+    """Committed per-chunk records are authoritative across interrupted writes."""
+    folder = session / '.stt-records'
+    folder.mkdir(mode=0o700, exist_ok=True)
+    base = session / '.stt-base.md'
+    transcript = session / 'transcript.md'
+    if not base.exists():
+        atomic_text(base, transcript.read_text(encoding='utf-8') if transcript.exists() else '')
+    records = [json.loads(path.read_text(encoding='utf-8')) for path in folder.glob('*.json')]
+    records.sort(key=lambda record: int(Path(record['chunk']).stem))
+    for record in records:
+        seen.add(record['chunk'])
+    text = base.read_text(encoding='utf-8')
+    text += ''.join(f"[{record['stamp']}] {record['text']}\n" for record in records if record['text'])
+    if text or transcript.exists():
+        atomic_text(transcript, text)
+    atomic_text(session / '.stt_done', ''.join(name + '\n' for name in sorted(seen)))
+
+
 def run_session(session, *, once=False, model_factory=None, decoder=None,
                 stop_event=None, poll_interval=2, heartbeat_interval=2):
     """Run one session; injectable decoding/model boundaries keep tests offline."""
@@ -136,6 +166,9 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
             except (OSError, ValueError, TypeError):
                 pass
         health.start()
+        recover_transcript(session, seen)
+        health.update(processed_count=len(seen),
+                      last_processed=(health.data['last_processed'] or time.time()) if seen else None)
         if decoder is None:
             ffmpeg = shutil.which("ffmpeg")
             if not ffmpeg:
@@ -146,7 +179,7 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
             if health.failure:
                 raise RuntimeError("Cannot publish STT heartbeat") from health.failure
             health.update(state="degraded" if errors else "idle")
-            for chunk in sorted(chunks.glob("*.webm")):
+            for chunk in sorted(chunks.glob("*.webm"), key=lambda path: int(path.stem) if path.stem.isdigit() else -1):
                 if stop_event.is_set():
                     break
                 if chunk.name in seen:
@@ -170,12 +203,11 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
                     continue
                 # Persistence failures are fatal, not decoding failures: preserve
                 # the source chunk for recovery and let the parent see failed.
-                if text:
-                    with (session / "transcript.md").open("a", encoding="utf-8") as stream:
-                        stream.write(f"[{stamp}] {text}\n")
-                with done.open("a", encoding="utf-8") as stream:
-                    stream.write(chunk.name + "\n")
-                seen.add(chunk.name)
+                # Commit the recognized chunk before materializing derived text
+                # and .stt_done. A crash between these writes is replayable.
+                atomic_text(session / '.stt-records' / (chunk.name + '.json'),
+                            json.dumps({'chunk': chunk.name, 'stamp': stamp, 'text': text}, ensure_ascii=False))
+                recover_transcript(session, seen)
                 health.update(last_processed=time.time(), processed_count=len(seen),
                               state="degraded" if errors else "idle")
             if once or stop_event.wait(poll_interval):
