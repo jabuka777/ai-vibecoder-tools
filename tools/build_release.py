@@ -45,7 +45,7 @@ def main():
         for path in paths:
             if (ROOT / path).is_symlink():
                 raise RuntimeError('Source symlinks are not included')
-            archive.write(ROOT / path, Path('ai-vibecoder-tools') / path)
+            archive.write(ROOT / path, Path('jabuka-tools') / path)
     digest = hashlib.sha256(args.output.read_bytes()).hexdigest()
     args.output.with_suffix('.zip.sha256').write_text(f'{digest}  {args.output.name}\n')
     print(f'{args.output}\n{len(paths)} source files\nSHA256 {digest}')

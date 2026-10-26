@@ -53,4 +53,4 @@ python zoom-meeting-agent/tools/evaluate_minutes.py --offline
 
 [Ябука](https://jabuka.ru) (ООО «Яблока») работает в Москве. Ремонтируем и продаём iPhone, MacBook, iMac, iPad, Apple Watch, AirPods и Mac mini, переносим данные, восстанавливаем доступ к устройствам. Свою работу мы автоматизировали ИИ-агентами и делимся тем, что сделали.
 
-Вопросы и предложения пишите в [GitHub Issues](https://github.com/jabuka777/ai-vibecoder-tools/issues). Записаться на ремонт или консультацию можно на [jabuka.ru](https://jabuka.ru).
+Вопросы и предложения пишите в [GitHub Issues](https://github.com/jabuka777/jabuka-tools/issues). Записаться на ремонт или консультацию можно на [jabuka.ru](https://jabuka.ru).

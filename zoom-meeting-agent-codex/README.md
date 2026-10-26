@@ -9,8 +9,8 @@
 Нужны Python 3.10+, ffmpeg и Node.js. Windows/macOS вручную не проверены; локальные проверки выполнены на Linux.
 
 ```bash
-git clone https://github.com/jabuka777/ai-vibecoder-tools
-cd ai-vibecoder-tools/zoom-meeting-agent-codex
+git clone https://github.com/jabuka777/jabuka-tools
+cd jabuka-tools/zoom-meeting-agent-codex
 python -m venv .venv
 ```
 
