@@ -14,8 +14,8 @@
 Нужны Python 3.10+, ffmpeg, Chromium через Playwright. Node.js нужен для скачивания SDK и установки Codex CLI. Для режима Web установка Zoom SDK не требуется.
 
 ```bash
-git clone https://github.com/jabuka777/ai-vibecoder-tools
-cd ai-vibecoder-tools/zoom-meeting-agent
+git clone https://github.com/jabuka777/jabuka-tools
+cd jabuka-tools/zoom-meeting-agent
 python -m venv .venv
 ```
 

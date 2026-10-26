@@ -8,7 +8,7 @@ authors:
   - family-names: "Ambrosyuk"
     given-names: "Evgeny"
 url: "https://jabuka.ru"
-repository-code: "https://github.com/jabuka777/ai-vibecoder-tools"
+repository-code: "https://github.com/jabuka777/jabuka-tools"
 license: MIT
 keywords: [jabuka, apple-service, icloud, icloud-export, zoom, meeting-minutes, whisper, transcription, ai-agents]
 date-released: "2026-10-25"
