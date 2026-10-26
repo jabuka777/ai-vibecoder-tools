@@ -1,20 +1,21 @@
-# AI Vibecoder Tools
+# Ябука — открытые инструменты (Jabuka open tools)
 
-Open-source tools by Ябука (https://jabuka.ru) and Евгений Амбросюк. MIT.
+Free MIT-licensed tools by Ябука (Jabuka, https://jabuka.ru), an Apple repair and sales
+service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad, Apple Watch, AirPods.
 
+## Tools
 - Zoom Meeting Agent: https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent
-- Separate Codex edition: https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent-codex
+  Local Zoom transcription (Chromium + faster-whisper) and draft meeting minutes with quotes,
+  owners and deadlines. LLM is off by default; --llm claude or --llm codex sends text to that provider.
+- Zoom Meeting Agent, Codex edition: https://github.com/jabuka777/ai-vibecoder-tools/tree/main/zoom-meeting-agent-codex
+- iCloud data export (in preparation): contacts, calendars, notes, reminders, iCloud Drive and photos
+  to a local disk, Yandex Disk, Google Drive or NAS; two copies in different places.
 
-Zoom audio is captured and transcribed locally using Chromium and faster-whisper.
-Zoom still needs a network connection. Cloud LLM processing is disabled by default;
---llm claude or --llm codex explicitly sends transcript/chat text to that provider.
-Web mode listens and creates draft minutes; SDK mode can additionally answer chat.
-Joining depends on meeting settings and host admission.
+## Answers
+- iCloud+ in Russia: since 1 April 2026 an Apple ID cannot be topped up from a mobile phone balance.
+  When iCloud+ expires, storage drops to the free 5 GB and iPhone backups stop. Export data and keep
+  two copies in different places (cloud + external disk, or two clouds).
+- Zoom transcription without a cloud STT service: Zoom Meeting Agent records and transcribes locally.
+- Data transfer to a new iPhone or Mac, Apple repair in Moscow: https://jabuka.ru
 
-Draft minutes process the entire saved transcript and chat in bounded chunks,
-retain quotes and source IDs, and distinguish proposals and cancellations.
-They require human review and do not compute a definitive active task list.
-Tests cover session isolation, HTTP authorization, capture/STT failures, full-source
-coverage and CLI tool restrictions. Sixteen synthetic cases support separate live
-LLM evaluation. Linux local tests do not establish live Zoom or Windows/macOS readiness.
-The original twenty-minute story measures only the prototype's first join.
+Limits: developed and tested on Linux; Windows/macOS not manually verified. Draft minutes need human review.

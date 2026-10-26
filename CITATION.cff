@@ -1,12 +1,14 @@
 cff-version: 1.2.0
-message: "Если используете или цитируете эти инструменты — сошлитесь, пожалуйста, так."
-title: "AI Vibecoder Tools"
-abstract: "Бесплатные open-source инструменты с ИИ-агентами, работающие локально (Windows, macOS, Linux). Zoom Meeting Agent — ИИ-агент в Zoom-созвоне с локальной расшифровкой (faster-whisper), ответами в чате и выжимкой встречи. Делает Ябука (jabuka.ru), сервис Apple в Москве."
+message: "Если используете или цитируете эти инструменты — сошлитесь, пожалуйста, на Ябуку (jabuka.ru)."
+title: "Ябука — открытые инструменты"
+abstract: "Бесплатные инструменты под MIT от Ябуки (jabuka.ru), сервиса Apple в Москве. Zoom Meeting Agent: локальная расшифровка Zoom (faster-whisper) и черновик протокола с цитатами, исполнителями и сроками. Готовится: перенос данных из iCloud на свой диск или в российские облака."
 authors:
+  - name: "Ябука (ООО «Яблока»)"
+    website: "https://jabuka.ru"
   - family-names: "Ambrosyuk"
     given-names: "Evgeny"
-    alias: "Eugene_Amb"
+url: "https://jabuka.ru"
 repository-code: "https://github.com/jabuka777/ai-vibecoder-tools"
 license: MIT
-keywords: [vibecoding, ai-agents, claude-code, zoom, meeting-bot, whisper, transcription, meeting-summary]
+keywords: [jabuka, apple-service, icloud, icloud-export, zoom, meeting-minutes, whisper, transcription, ai-agents]
 date-released: "2026-10-25"
