@@ -38,7 +38,7 @@ def main(argv=None):
     parser.add_argument('--password-file', type=Path)
     parser.add_argument('--name', default='AI meeting assistant')
     parser.add_argument('--minutes', type=float, default=180)
-    parser.add_argument('--llm', choices=['none', 'claude', 'codex'], default='none')
+    parser.add_argument('--llm', choices=['none', 'claude', 'codex', 'deepseek'], default='none')
     parser.add_argument('--model')
     parser.add_argument('--no-summary', action='store_true', help='alias for --llm none')
     args = parser.parse_args(argv)

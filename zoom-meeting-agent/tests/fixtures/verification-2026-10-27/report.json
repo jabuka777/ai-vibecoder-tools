@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "scope": "Local Linux verification with synthetic data. Not all 50 external acceptance scenarios. No real Zoom meeting or real DeepSeek API call.",
+  "environment": {
+    "python": "Python 3.12.3",
+    "os": "Linux",
+    "architecture": "x86_64",
+    "fresh_environment_created_by_product": true
+  },
+  "tests": {
+    "command": "python -m unittest discover -s zoom-meeting-agent/tests -v",
+    "count": 233,
+    "skipped": 0,
+    "passed": true,
+    "seconds": 35.234
+  },
+  "fresh_setup": {
+    "runs": [
+      {
+        "phase": "readonly_plan",
+        "exit_code": 0,
+        "home_created": false
+      },
+      {
+        "phase": "fresh_install",
+        "exit_code": 1
+      },
+      {
+        "phase": "offline_mcp_resolution",
+        "exit_code": 1
+      },
+      {
+        "phase": "resume_with_missing_mcp",
+        "exit_code": 1
+      },
+      {
+        "phase": "resume_core_only",
+        "exit_code": 0,
+        "performed": [],
+        "skipped": [
+          "venv",
+          "dependencies",
+          "chromium"
+        ]
+      },
+      {
+        "phase": "doctor_fresh_environment",
+        "exit_code": 0
+      },
+      {
+        "phase": "authorized_pypi_download",
+        "exit_code": 0,
+        "wheels": 28
+      },
+      {
+        "phase": "resume_mcp_from_downloaded_wheels",
+        "exit_code": 0,
+        "performed": [
+          "mcp"
+        ],
+        "skipped": [
+          "venv",
+          "dependencies",
+          "chromium"
+        ]
+      },
+      {
+        "phase": "repeat_complete_install",
+        "exit_code": 0,
+        "performed": [],
+        "skipped": [
+          "venv",
+          "dependencies",
+          "chromium",
+          "mcp"
+        ]
+      },
+      {
+        "phase": "doctor_complete_fresh_environment",
+        "exit_code": 0
+      },
+      {
+        "phase": "mcp_sdk_import",
+        "exit_code": 0
+      },
+      {
+        "phase": "python_requires_check",
+        "exit_code": 0
+      }
+    ],
+    "package_sources": "Previously saved core wheels; missing MCP wheels downloaded from PyPI into a separate cache, then installed offline.",
+    "browser_and_model": "Previously downloaded shared user caches; loaded locally by doctor. Fresh browser/model download not verified."
+  },
+  "skill_smoke": {
+    "commands": 12,
+    "all_exit_codes": 0,
+    "source_and_installed_wrappers": true,
+    "unrelated_working_directory": true,
+    "codex_toml_and_claude_cursor_json_parsed": true,
+    "independent_human_novice": false
+  },
+  "local_room": {
+    "scenario": "success",
+    "passed": true,
+    "app_exit_code": 0,
+    "seconds": 41.6,
+    "status": [
+      {
+        "state": "complete",
+        "reason": null,
+        "ts": 1793110303.0668645,
+        "incomplete": false,
+        "recording_complete": true,
+        "summary_state": null,
+        "problems": []
+      }
+    ],
+    "actual_browser": true,
+    "actual_whisper": true,
+    "zoom_contacted": false,
+    "network": "All browser requests intercepted locally; no real Zoom or participants"
+  },
+  "historical_model_outputs_rechecked_offline": {
+    "passed": 16,
+    "total": 16,
+    "new_model_calls": 0
+  },
+  "not_tested": [
+    "real Zoom meeting",
+    "Windows",
+    "macOS",
+    "real DeepSeek API",
+    "real Claude API",
+    "fresh cloud authentication",
+    "one-hour load",
+    "four-hour soak",
+    "independent human multi-speaker corpus",
+    "independent novice acceptance"
+  ],
+  "limitations": [
+    "Evidence equality prevents cropping inside one source record, not semantic errors or omitted context in other records.",
+    "Transcript timestamps estimate chunk start from end time and decoded duration; they are not word-accurate.",
+    "MCP file boundary is POSIX only."
+  ]
+}

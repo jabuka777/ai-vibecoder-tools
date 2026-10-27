@@ -285,8 +285,10 @@ def _validate(raw: str, sources: list[dict]) -> list[dict]:
             source_id, quote = item["source_id"], item["quote"]
             if not isinstance(source_id, str) or source_id not in source_map:
                 raise MinutesError("Цитата ссылается на неизвестную строку")
-            if not isinstance(quote, str) or not quote.strip() or quote not in source_map[source_id]["text"]:
-                raise MinutesError("Цитата не найдена в указанной строке")
+            if not isinstance(quote, str) or not quote.strip() or quote != source_map[source_id]["text"]:
+                # A substring can omit a negation, cancellation or speaker label.
+                # Require the complete source record, as the prompt promises.
+                raise MinutesError("Цитата должна полностью совпадать с указанной строкой")
         for field in ("project", "owner", "due"):
             value = fact[field]
             if value is not None and (not isinstance(value, str) or not value.strip()

@@ -4,6 +4,10 @@
 
 Скачайте весь репозиторий или архив выпуска. Папка `zoom-meeting-agent/` содержит общее ядро, а эта папка содержит отдельный запуск, настройки и записи. Скопировать только `run.py` недостаточно.
 
+Для новичка есть [единый скилл и установщик](../START_HERE.md), для управления
+инструментами Codex также [MCP](../skills/zoom-meeting-agent/references/clients.md).
+Описанный ниже отдельный CLI сохраняет собственные настройки и сессии.
+
 ## Установка
 
 Нужны Python 3.10+, ffmpeg и Node.js. Windows/macOS вручную не проверены; локальные проверки выполнены на Linux.
@@ -19,6 +23,7 @@ python -m venv .venv
 ```bash
 python -m pip install -r requirements.txt
 python -m playwright install chromium
+python ../zoom-meeting-agent/setup_environment.py --home . --download-model
 npm install -g @openai/codex@0.164.0
 codex login
 python run.py doctor --backend codex

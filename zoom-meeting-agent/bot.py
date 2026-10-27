@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 from control import State, create_server
 from env import load_env, need, meeting_password
-from runtime import CaptureGuard, Monitor, finish, new_session, start_stt
+from runtime import CaptureGuard, Monitor, finish, new_session, start_stt, start_process
 
 HERE = Path(__file__).resolve().parent
 
@@ -33,7 +33,7 @@ def main(argv=None):
     parser.add_argument('--headed', action='store_true')
     parser.add_argument('--no-stt', action='store_true')
     parser.add_argument('--no-agent', action='store_true', help='alias for --llm none')
-    parser.add_argument('--llm', choices=['none', 'claude', 'codex'], default='none')
+    parser.add_argument('--llm', choices=['none', 'claude', 'codex', 'deepseek'], default='none')
     parser.add_argument('--model')
     parser.add_argument('--mic-file', type=Path)
     parser.add_argument('--minutes', type=float, default=0)
@@ -76,7 +76,7 @@ def main(argv=None):
                        '--max-replies', str(args.max_replies), '--replies-per-minute', str(args.replies_per_minute)]
             if args.model:
                 command += ['--model', args.model]
-            monitor.agent = subprocess.Popen(command)
+            monitor.agent = start_process(command)
         with sync_playwright() as playwright:
             flags = ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
                      '--autoplay-policy=no-user-gesture-required']

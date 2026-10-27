@@ -39,7 +39,8 @@ def load(path, ffmpeg):
 def make_model():
     from faster_whisper import WhisperModel
 
-    return WhisperModel("small", device="cpu", compute_type="int8", cpu_threads=3)
+    return WhisperModel("small", device="cpu", compute_type="int8", cpu_threads=3,
+                        local_files_only=True)
 
 
 class Health:
@@ -188,10 +189,19 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
                     continue
                 health.update(state="processing", last_chunk=chunk.name)
                 try:
-                    # Validate the timestamp before emitting any transcript text.
-                    stamp = dt.datetime.fromtimestamp(int(chunk.stem) / 1000 - 20).strftime("%H:%M:%S")
+                    # Browser filenames record chunk completion, including a
+                    # short final flush. Estimate its start from decoded mono
+                    # 16 kHz samples; never assume every chunk lasts 20 seconds.
+                    # Upload scheduling/codec padding still prevent sample- or
+                    # word-accurate timing. Nonstandard decoders keep end time.
+                    chunk_end = int(chunk.stem) / 1000
+                    dt.datetime.fromtimestamp(chunk_end)  # Validate before decode.
+                    audio = decoder(chunk)
+                    duration = len(audio) / 16000 if getattr(audio, 'ndim', None) == 1 else None
+                    timestamp_reference = 'estimated_chunk_start' if duration is not None else 'chunk_end'
+                    stamp = dt.datetime.fromtimestamp(chunk_end - (duration or 0)).strftime("%H:%M:%S")
                     segments, _ = model.transcribe(
-                        decoder(chunk), language="ru", vad_filter=True, beam_size=1,
+                        audio, language="ru", vad_filter=True, beam_size=1,
                     )
                     text = " ".join(segment.text.strip() for segment in segments).strip()
                 except Exception as exc:
@@ -206,7 +216,12 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
                 # Commit the recognized chunk before materializing derived text
                 # and .stt_done. A crash between these writes is replayable.
                 atomic_text(session / '.stt-records' / (chunk.name + '.json'),
-                            json.dumps({'chunk': chunk.name, 'stamp': stamp, 'text': text}, ensure_ascii=False))
+                            json.dumps({'chunk': chunk.name, 'stamp': stamp, 'text': text,
+                                        'timestamp_reference': timestamp_reference,
+                                        'timestamp_basis': ('decoded_mono_16khz_duration'
+                                                            if duration is not None else 'chunk_end_only'),
+                                        'chunk_end_ms': int(chunk.stem),
+                                        'duration_seconds': duration}, ensure_ascii=False))
                 recover_transcript(session, seen)
                 health.update(last_processed=time.time(), processed_count=len(seen),
                               state="degraded" if errors else "idle")

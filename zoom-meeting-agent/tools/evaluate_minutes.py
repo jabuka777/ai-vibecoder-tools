@@ -328,7 +328,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--offline", action="store_true", help="never call a model")
-    mode.add_argument("--backend", choices=("claude", "codex"), help="explicit opt-in to live cloud requests")
+    mode.add_argument("--backend", choices=("claude", "codex", "deepseek"), help="explicit opt-in to live cloud requests")
     parser.add_argument("--model", help="required explicit model for live evaluation")
     parser.add_argument("--output-dir", type=Path, help="NEW live-results folder; defaults to sessions/evaluations/<unique>")
     parser.add_argument("--timeout", type=float, default=300, help="per-model-call timeout in seconds")

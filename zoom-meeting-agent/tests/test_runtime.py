@@ -81,7 +81,7 @@ class StartupCleanupTests(unittest.TestCase):
                         stack.enter_context(patch.object(module, 'new_session', return_value=session))
                         stack.enter_context(patch.object(module, 'start_stt', return_value=child))
                         stack.enter_context(patch.object(module.signal, 'signal'))
-                        stack.enter_context(patch.object(runtime.subprocess, 'run', return_value=Mock(returncode=0)))
+                        stack.enter_context(patch.object(runtime, 'run_process', return_value=Mock(returncode=0)))
                         if module is bot:
                             stack.enter_context(patch.object(bot, 'load_env', return_value={
                                 'ZOOM_SDK_CLIENT_ID': 'synthetic', 'ZOOM_SDK_CLIENT_SECRET': 'synthetic'}))
@@ -233,7 +233,7 @@ class RuntimeTests(unittest.TestCase):
         agent = types.ModuleType("agent")
         agent.summary = Mock(return_value=True)
         with patch.object(runtime, "stop_process"), \
-                patch.object(runtime.subprocess, "run", return_value=Mock(returncode=1)), \
+                patch.object(runtime, "run_process", return_value=Mock(returncode=1)), \
                 patch.dict(sys.modules, {"agent": agent}):
             self.assertEqual(runtime.finish(self.session, monitor, "claude", None), 1)
         agent.summary.assert_not_called()
@@ -304,7 +304,7 @@ class RuntimeTests(unittest.TestCase):
             self.health(state="stopped", processed_count=1, pending_count=0, last_processed=10000)
             return Mock(returncode=0)
 
-        with patch.object(runtime, "stop_process"), patch.object(runtime.subprocess, "run", side_effect=drain):
+        with patch.object(runtime, "stop_process"), patch.object(runtime, "run_process", side_effect=drain):
             self.assertEqual(runtime.finish(self.session, monitor, "none", None), 0)
         self.assertTrue(self.status()["recording_complete"])
         self.assertEqual(self.status()["state"], "complete")

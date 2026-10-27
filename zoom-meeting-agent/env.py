@@ -6,15 +6,16 @@ APP_HOME = Path(os.environ.get("ZOOM_AGENT_HOME", Path(__file__).resolve().paren
 ENV_FILE = APP_HOME / ".env"
 
 
-def load_env() -> dict:
+def load_env(home=None) -> dict:
     out = {}
-    if ENV_FILE.exists():
-        for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
+    env_file = Path(home) / '.env' if home is not None else ENV_FILE
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 out[k.strip()] = v.strip().strip('"').strip("'")
-    out.update({k: v for k, v in os.environ.items() if k.startswith(("ZOOM_", "AGENT_", "TELEGRAM_", "CODEX_MODEL"))})
+    out.update({k: v for k, v in os.environ.items() if k.startswith(("ZOOM_", "AGENT_", "TELEGRAM_", "CODEX_MODEL", "DEEPSEEK_"))})
     return out
 
 

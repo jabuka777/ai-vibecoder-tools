@@ -7,8 +7,8 @@ import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-TOP = {'README.md', 'LICENSE', 'llms.txt', 'CITATION.cff', 'CHANGELOG.md'}
-SOURCE_EXTENSIONS = {'.py', '.md', '.js', '.html', '.json', '.jsonl', '.txt'}
+TOP = {'.gitignore', 'README.md', 'START_HERE.md', 'SECURITY.md', 'LICENSE', 'llms.txt', 'CITATION.cff', 'CHANGELOG.md'}
+SOURCE_EXTENSIONS = {'.py', '.md', '.js', '.html', '.json', '.jsonl', '.txt', '.yaml', '.toml'}
 
 
 def release_paths():
@@ -21,13 +21,15 @@ def release_paths():
         if name in TOP:
             yield path
             continue
-        if path.parts[0] not in {'zoom-meeting-agent', 'zoom-meeting-agent-codex', 'tools'}:
+        if path.parts[0] not in {'zoom-meeting-agent', 'zoom-meeting-agent-codex', 'skills', 'tools'}:
             continue
-        if any(part in {'sessions', '.venv', '__pycache__', '.minutes-history', '.minutes-cache'} for part in path.parts):
+        if any(part in {'sessions', 'meetings', 'runs', '.sdk-backups', '.venv', '__pycache__', '.minutes-history', '.minutes-cache'}
+               or part.startswith('.sdk-stage-') for part in path.parts):
             raise RuntimeError(f'Private data path is tracked: {name}')
         if path.name == '.env.example' or path.name == '.gitignore':
             yield path
-        elif path.name in {'.env', 'storage_state.json', 'control.json', 'outbox.json', 'meeting-password.txt'} or '.min.js' in path.name:
+        elif path.name in {'.env', 'storage_state.json', 'control.json', 'outbox.json', 'meeting-password.txt',
+                           '.setup-state.json', '.setup.lock', '.sdk-setup.lock', 'sdk-installation.json', 'installation.json'} or '.min.js' in path.name:
             raise RuntimeError(f'Private/generated file is tracked: {name}')
         elif path.suffix in SOURCE_EXTENSIONS:
             yield path
@@ -35,7 +37,7 @@ def release_paths():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / 'zoom-meeting-agent-codex.zip')
+    parser.add_argument('--output', type=Path, default=ROOT / 'dist' / 'zoom-meeting-agent.zip')
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     if args.output.exists():

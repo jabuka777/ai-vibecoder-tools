@@ -1,0 +1,2 @@
+# Optional stdio MCP server. Tested with the official Python SDK 2.0 API.
+mcp==2.0.0

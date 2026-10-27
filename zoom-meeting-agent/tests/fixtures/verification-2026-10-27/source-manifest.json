@@ -1,0 +1,220 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "base_commit": "3b8b0e407ca1dc956eec8e13d1ec8ec7e8b7288f",
+  "scope": "Final tested source files. Paths relative to repository root. Git blob hashes use the repository object format.",
+  "files": {
+    "skills/zoom-meeting-agent/agents/openai.yaml": {
+      "sha256": "194df669dffcf00f0829a086cb866f987dab488e7410caba56b340c628ffe10f",
+      "git_blob": "f0c2a7bcb5461dbc16d9bc0fa6684b01492541f7"
+    },
+    "skills/zoom-meeting-agent/scripts/zoom.py": {
+      "sha256": "4bd5b948f3f64906644283947458c593dff4829e07093fe8c963c904fc66a2e6",
+      "git_blob": "efc578bc537fbf636bbde356d557693acc05148b"
+    },
+    "tools/build_release.py": {
+      "sha256": "f23d5540e23ddc541144b37d459f3016c7122b34071415ce2c750d81f957c813",
+      "git_blob": "e7d6ba0b51ab39c0f827eb5504aa20b60ff425cf"
+    },
+    "tools/install_zoom_skill.py": {
+      "sha256": "d9acdbc605a509ffae23e613a05c2cf8e6de86f58c2b0ea6d107231750bae01c",
+      "git_blob": "3c675f45f2c9f0ea6cb44f4a9b7b2d53c41af040"
+    },
+    "zoom-meeting-agent-codex/.env.example": {
+      "sha256": "cde707a2e131afc220c4885776c082087e17879efb84be178e1323b60ef58689",
+      "git_blob": "da0419710a103eeb56f5601a7ba5be939757a889"
+    },
+    "zoom-meeting-agent-codex/requirements.txt": {
+      "sha256": "70bbc94f84245eba8cbc561dab56c5b6cac652499c1f501a002e669ed6bf5e1c",
+      "git_blob": "61640e30c9256e2380e786534415bc1f27a73ab4"
+    },
+    "zoom-meeting-agent-codex/run.py": {
+      "sha256": "2f9b200f93dbffce36429509deff620eef42fe322662befdbf3d25c3ff1ca742",
+      "git_blob": "33b22ed82dd01594d855637d72a5b5b6c7fcaa78"
+    },
+    "zoom-meeting-agent/.env.example": {
+      "sha256": "fba8196fe3cf1c55d0d5a3e87f2678a004652517bcf0f6a27feea36efe369fc4",
+      "git_blob": "d21b0190381367eea5d9027ed92aaa94b984d3e4"
+    },
+    "zoom-meeting-agent/agent.py": {
+      "sha256": "0a6d616356b811eff5132575ca14f51b3a02becacb40eeb51df2e99260a014ff",
+      "git_blob": "1c935449729aae476483e58418cd83aa4c437eec"
+    },
+    "zoom-meeting-agent/bot.py": {
+      "sha256": "475cffc93317e618123e467ca941ac6ad84e0b02f89ae16baa80a6d37e79aa9c",
+      "git_blob": "9597833ad8c9c100ca3b28ac996890a11aaa6bad"
+    },
+    "zoom-meeting-agent/configure.py": {
+      "sha256": "e699db8308900b66b9a0827df7da290e1bd8a7926ae17f58daaa0eac036b1d9e",
+      "git_blob": "0ce7dc8e545eb6ddeb9357b3cd5e75ec929bbb58"
+    },
+    "zoom-meeting-agent/control.py": {
+      "sha256": "0e7ffdf390a7273e9f9bd57a769f33b901d77f9b6722e13c7d82780829fc1c5a",
+      "git_blob": "bf0049c9d981ba99646304692ce1db228bde60d5"
+    },
+    "zoom-meeting-agent/deepseek_text.py": {
+      "sha256": "217d6b478643d52a8f03bbfe85b81b2a8825f3ea1017c0a37308b9a47d968576",
+      "git_blob": "3caf628b86ce94994cc1636cec31f0a6c36d55a3"
+    },
+    "zoom-meeting-agent/doctor.py": {
+      "sha256": "c02c5b4a6d6554dbfe01d6b561b4a3696ccd69e41622c55451e56fa04a68a02b",
+      "git_blob": "af10e3eeebdf151293f60bd346466ea0ed476c62"
+    },
+    "zoom-meeting-agent/env.py": {
+      "sha256": "3f4d605f63b2f97515a6109843918eac297db1433c2d1ce0956b4f490f7d0eb6",
+      "git_blob": "b8845848623ed3d58963140c16c0e7bc5b68b033"
+    },
+    "zoom-meeting-agent/llm.py": {
+      "sha256": "dfb424b7a8a5be9ca234d9a3180dc393385865717ffafa091175bad1e1966f1b",
+      "git_blob": "f784706f758a120f0fae82e90425ea6c0e42e132"
+    },
+    "zoom-meeting-agent/login.py": {
+      "sha256": "3517429a84a599a839dde9e78221bbf7feeae249ed2e7b606a00fa64d0af6767",
+      "git_blob": "64953cddc5f9baf4730822809b80edabd450eb40"
+    },
+    "zoom-meeting-agent/mcp_server.py": {
+      "sha256": "aa6ea692f746e3358f4d5b43266b88123183fbe7688ce02210b8d1913c379e35",
+      "git_blob": "c495a46052fa771512dc044e69ed8fb9d3ecfb85"
+    },
+    "zoom-meeting-agent/minutes.py": {
+      "sha256": "8395ff6b1796143dc7d2d76f21b1d69d24bb64d8ebaa542dbd1bb28b5dc5d701",
+      "git_blob": "3258e0b6bc98bd9785e94ec3ba330265ddd5335d"
+    },
+    "zoom-meeting-agent/requirements-mcp.txt": {
+      "sha256": "c2b0fb8519a9ec4775be324b2eb1ec6e630aa081f7003e52e6d9650d4003dc27",
+      "git_blob": "2d24d1e860a9b628dca362a26da110247add043a"
+    },
+    "zoom-meeting-agent/requirements.txt": {
+      "sha256": "c899cc67b940d7b8842be685f73659609e86a786802a3bf8c2aa7ebf12acefd1",
+      "git_blob": "a028c1187407958bbf4de8bbe6eea476c1a4f5c9"
+    },
+    "zoom-meeting-agent/runtime.py": {
+      "sha256": "2f4ed8afa5db8d6712657d7f50f10e49fe8349b46148c69c0913015aaa0d7ae7",
+      "git_blob": "dd4cf6eab1b44d164eaeca3d33339519110de610"
+    },
+    "zoom-meeting-agent/say.py": {
+      "sha256": "312274f398b34e3a5657dccf18ee66973d83080aecbd66f6ddba5f756534a00d",
+      "git_blob": "c625d324874168fa215b9ffcbcca9306e10002e1"
+    },
+    "zoom-meeting-agent/setup_environment.py": {
+      "sha256": "645c251fab5e9de93de5965417076d741c707040331cd3c1b9e9134f8eddb6c9",
+      "git_blob": "b42339b1fb2ae364fccb994210ab0caf53c4ee7c"
+    },
+    "zoom-meeting-agent/setup_sdk.py": {
+      "sha256": "da4b1e6e5e3081cd97d9ae16813357dd697c7b92603ac79a9fa8223e1b5d190e",
+      "git_blob": "34f85da9a93a5ab86455b4b59bdf314e8ef0f8cb"
+    },
+    "zoom-meeting-agent/static/audio-hook.js": {
+      "sha256": "aaabc553cf9019aca50c69f0f3c56444e134bfecc868d41c59c2bda56798ff8a",
+      "git_blob": "5d2fb037e8b7d83b6728e56a1d654a5accb641eb"
+    },
+    "zoom-meeting-agent/static/index.html": {
+      "sha256": "c0a753017b967d8f6ef5b5faf787132bd6b971c685c9bed6b01c5acbaeff7b88",
+      "git_blob": "b7a3f9c9e7dc62771b63009e709795a0ccf7810a"
+    },
+    "zoom-meeting-agent/static/outbox.js": {
+      "sha256": "f4c854110fbd0b14be57b1ca4c70e171ed0196b4c67a60891ad5c4f0984ef881",
+      "git_blob": "0e62791e58e6caa4702ebe5a5f5783c9bb74cf65"
+    },
+    "zoom-meeting-agent/stt.py": {
+      "sha256": "ccf69807ce2797f65de6ad35c886ab00728f136c3ba07bbd561a11873cc5a698",
+      "git_blob": "005805d50525b9e293681abe728e2ba3d68891cd"
+    },
+    "zoom-meeting-agent/tests/test_agent_events.py": {
+      "sha256": "45c60bc2f1fd50d429114b56b300278207a512ccc3e0fd0b4c645cf232f8ce7d",
+      "git_blob": "267d9fbced7e99964a12aecf16ce00476b1a8788"
+    },
+    "zoom-meeting-agent/tests/test_browser_capture.py": {
+      "sha256": "b257d16a88f9b74e6644e64d7b4d79545fa8976e813cc436248dd7b5f16c99b3",
+      "git_blob": "96cf1da164078323cbda7252fb6b7f9632146961"
+    },
+    "zoom-meeting-agent/tests/test_cli_input.py": {
+      "sha256": "88ef1aa6eb9152a6ba6616910ac471fc57d6da61c8db9d7ae5979a335dfcc4fa",
+      "git_blob": "b6922d5a6885ee8752ab3de3f26ef8f8c5196978"
+    },
+    "zoom-meeting-agent/tests/test_codex_boundary.py": {
+      "sha256": "e13e07a0041f9d5560a2e6e21f06bd11b557b759f2eafdb75a434507b038e837",
+      "git_blob": "b984c9fa5b26b8af3b56e199e06755a9d295e806"
+    },
+    "zoom-meeting-agent/tests/test_configuration.py": {
+      "sha256": "55b9810eae4f8b850c9cfd45b1f84da45161e314a8398a46e9a34962a0370927",
+      "git_blob": "c4fd642735344a8618edf310aeb642101f248b6a"
+    },
+    "zoom-meeting-agent/tests/test_control.py": {
+      "sha256": "155cdae1de1dfb3b839b146a08e637b66a1b47435b4d22ea999e01a2850daa30",
+      "git_blob": "0f4aedc99addb2b76729be73d7ae043fc7a3ed94"
+    },
+    "zoom-meeting-agent/tests/test_deepseek.py": {
+      "sha256": "0d017123b117ee19b93f9cafbb2ccb96d71b6cfacea8f7190ea3128926fa958a",
+      "git_blob": "902545e503ff396b0e7893fedd62fbda99e6ce69"
+    },
+    "zoom-meeting-agent/tests/test_doctor.py": {
+      "sha256": "ebdc4548af7dec8784f4ea8b1ae980ae1d83ff3368e7f3a3afdac0bf056396d6",
+      "git_blob": "d04436560120530abba3bc66aa9479af41429f20"
+    },
+    "zoom-meeting-agent/tests/test_evaluate_minutes.py": {
+      "sha256": "d8083ee01790f6c39e9528c45faee7ff6f4b7d073961e98b2fcc8e144279ded0",
+      "git_blob": "70a3bd6418d21c61d4136f91547f25b6eb769846"
+    },
+    "zoom-meeting-agent/tests/test_llm.py": {
+      "sha256": "0eaf60e6769fd490da1d474bf54729981dc340f77be82467d1d0650d45fb2df4",
+      "git_blob": "50d16082dc93ecf44df6686ce0c13346bd86f5cb"
+    },
+    "zoom-meeting-agent/tests/test_mcp_server.py": {
+      "sha256": "386d30e4f276e05d3844a2b2ed76c4d8095a71753f1b1d4b3dfba65e28165166",
+      "git_blob": "6abac974ff6c66a4c6a432eecd487e5ed6d6477e"
+    },
+    "zoom-meeting-agent/tests/test_minutes.py": {
+      "sha256": "ce6b2811c37e3a7f2f702401707c91f0f4f3bd8d0261e222c1d3ceb84be965c0",
+      "git_blob": "810b221674be215fc4e051d3a04c35d2b612fccc"
+    },
+    "zoom-meeting-agent/tests/test_outbox_browser.py": {
+      "sha256": "79038f3105e8a40e3ab623854cc4d29b56cfe1cbe2d12edf7e12c9e8c9471ad4",
+      "git_blob": "69fc75bbeb503e9a65c31b0db052233bb011d8a1"
+    },
+    "zoom-meeting-agent/tests/test_process_tree.py": {
+      "sha256": "9dc628f8b95020740b676dfdf7dfbf5f77b62c367b899d3503d1f0c03bbf0995",
+      "git_blob": "a4dff6fbd8c294c65b7f51fa12d1a4c07eb93899"
+    },
+    "zoom-meeting-agent/tests/test_release.py": {
+      "sha256": "d11869d3e80e66b22cfd3359d59c22143e9cc1b45335d0cabe095c6d49c13170",
+      "git_blob": "95a1a5074e30699f78721d0be4d5feab38d686ed"
+    },
+    "zoom-meeting-agent/tests/test_routing.py": {
+      "sha256": "224713e404bbed18b9363507da4d0746dd8966a088ed3adbf9b1c4d3c4df18e8",
+      "git_blob": "efd2e3d3cd3ff75caceb72a84d5822f8689eb2be"
+    },
+    "zoom-meeting-agent/tests/test_runtime.py": {
+      "sha256": "403636697cf6c48eca8b80a8413c06dd20523d528a57fb793909fe2d35c7d282",
+      "git_blob": "9516cf8171d7eb688fe15676170b788bf511c22c"
+    },
+    "zoom-meeting-agent/tests/test_setup_environment.py": {
+      "sha256": "d0170369501412916da9251948ce5d8d7a40ae96e7f69c5a5dc6ae2448328b05",
+      "git_blob": "77fa7b4f35723384d6e4dc867ec9d16d99a0c176"
+    },
+    "zoom-meeting-agent/tests/test_setup_sdk.py": {
+      "sha256": "8a289f3f3a503b3a73e3aba8aa034f349a312459d173f46224e68bdcd0fe964e",
+      "git_blob": "a50f4e3d75e04bdb85f36eee26679aa577d093c3"
+    },
+    "zoom-meeting-agent/tests/test_skill_entry.py": {
+      "sha256": "7b07b74f7d865adf7862e55fd29d791ac645f0c9b7fd834b36e14414f1b77657",
+      "git_blob": "429b928063f63d54a0f71662c93f61b04f76af8b"
+    },
+    "zoom-meeting-agent/tests/test_stt.py": {
+      "sha256": "95e87f1a9cfc3e9d304e9cdf46490af784b9cdd8a9f298cf64740346037338f7",
+      "git_blob": "f400b7438bd07515ab2b25da05ca21f4f40c2d61"
+    },
+    "zoom-meeting-agent/tests/test_transcript_tail.py": {
+      "sha256": "90c56d151b0333de41f4861111d48b35f9fa911229b63bf1eeea4b15b48f371f",
+      "git_blob": "bad5f9844a90f52f6d599b510f0a46cb7952a6c8"
+    },
+    "zoom-meeting-agent/tools/evaluate_minutes.py": {
+      "sha256": "6bee2a644336226ba065b9649ea3c4ef203ca88a1145be5fe81ce4558a24b3a9",
+      "git_blob": "c5c717c5efe16e84828b8e7f5b221900e0fcb0ab"
+    },
+    "zoom-meeting-agent/webjoin.py": {
+      "sha256": "917136c3c7738b199e319f352aa7bca39dec98a7b7eb23ffef4758821e4ce980",
+      "git_blob": "4ec350544442c5e4104d5d02a567aa537e72a24f"
+    }
+  }
+}

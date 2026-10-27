@@ -1,5 +1,6 @@
 """Offline tests: no Zoom, model download, credentials, or real meeting data."""
 import contextlib
+import datetime as dt
 import importlib.util
 import io
 import json
@@ -12,7 +13,7 @@ import threading
 import time
 import types
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 MODULE = Path(__file__).resolve().parents[1] / "stt.py"
 spec = importlib.util.spec_from_file_location("meeting_stt", MODULE)
@@ -113,6 +114,50 @@ class STTTests(unittest.TestCase):
         self.assertEqual(self.run_worker(), 0)
         self.assertEqual((self.session / "transcript.md").read_text(), first)
         self.assertEqual(self.health()["processed_count"], 1)
+
+    def test_short_and_full_chunk_timestamps_use_actual_decoded_duration(self):
+        import numpy as np
+        chunks = [('1000000005000.webm', 5), ('1000000040000.webm', 20)]
+        for name, _ in chunks:
+            self.chunk(name)
+        decoder = Mock(side_effect=lambda path: np.zeros(
+            dict(chunks)[path.name] * 16000, dtype=np.float32))
+        class TextModel:
+            def transcribe(self, audio, **kwargs):
+                return iter([types.SimpleNamespace(text='synthetic speech')]), None
+        self.assertEqual(stt.run_session(self.session, once=True, model_factory=TextModel, decoder=decoder), 0)
+        self.assertEqual(decoder.call_count, 2)
+        for name, duration in chunks:
+            record = json.loads((self.session / '.stt-records' / (name + '.json')).read_text())
+            expected = dt.datetime.fromtimestamp(int(Path(name).stem) / 1000 - duration).strftime('%H:%M:%S')
+            self.assertEqual(record['stamp'], expected)
+            self.assertEqual(record['duration_seconds'], duration)
+            self.assertEqual(record['chunk_end_ms'], int(Path(name).stem))
+            self.assertEqual(record['timestamp_basis'], 'decoded_mono_16khz_duration')
+            self.assertEqual(record['timestamp_reference'], 'estimated_chunk_start')
+
+    def test_non_audio_test_decoder_uses_end_time_without_invented_duration(self):
+        name = '1000000005000.webm'
+        self.chunk(name)
+        self.assertEqual(self.run_worker(), 0)
+        record = json.loads((self.session / '.stt-records' / (name + '.json')).read_text())
+        self.assertEqual(record['stamp'], dt.datetime.fromtimestamp(1000000005).strftime('%H:%M:%S'))
+        self.assertIsNone(record['duration_seconds'])
+        self.assertEqual(record['timestamp_basis'], 'chunk_end_only')
+        self.assertEqual(record['timestamp_reference'], 'chunk_end')
+
+    def test_legacy_committed_timestamp_is_not_recomputed(self):
+        name = '1000000005000.webm'
+        self.chunk(name)
+        folder = self.session / '.stt-records'
+        folder.mkdir()
+        path = folder / (name + '.json')
+        original = json.dumps({'chunk': name, 'stamp': '01:02:03', 'text': 'legacy speech'})
+        path.write_text(original)
+        with patch.object(Model, 'transcribe', side_effect=AssertionError('Do not reprocess committed legacy audio')):
+            self.assertEqual(self.run_worker(), 0)
+        self.assertEqual(path.read_text(), original)
+        self.assertEqual((self.session / 'transcript.md').read_text(), '[01:02:03] legacy speech\n')
 
     def test_crash_after_transcript_before_done_does_not_duplicate(self):
         self.chunk('1000000000000.webm')

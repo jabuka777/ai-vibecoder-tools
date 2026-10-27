@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zoom Meeting Agent"
+  short_description: "Настройка Zoom, запись встречи и протокол с цитатами"
+  default_prompt: "Используй $zoom-meeting-agent: настрой всё для моей первой записи Zoom и проверь результат."

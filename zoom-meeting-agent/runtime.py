@@ -3,6 +3,7 @@ import datetime as dt
 import json
 import os
 import shutil
+import signal
 from pathlib import Path
 import subprocess
 import time
@@ -171,11 +172,129 @@ class CaptureGuard:
 
 
 def start_stt(session):
-    return subprocess.Popen([venv_python(), str(HERE / 'stt.py'), str(session)])
+    return start_process([venv_python(), str(HERE / 'stt.py'), str(session)])
+
+
+def _process_table():
+    """PID, parent, group and birth identity; never read arguments or environment."""
+    table = {}
+    if Path('/proc/self/stat').exists():
+        for path in Path('/proc').glob('[0-9]*/stat'):
+            try:
+                fields = path.read_text().rsplit(')', 1)[1].split()
+                table[int(path.parent.name)] = (int(fields[1]), int(fields[2]), fields[19])
+            except (OSError, ValueError, IndexError):
+                continue  # A process may exit while the snapshot is being read.
+    elif os.name == 'posix':
+        result = subprocess.run(['ps', '-axo', 'pid=,ppid=,pgid=,lstart='],
+                                capture_output=True, text=True, timeout=5, check=True)
+        for line in result.stdout.splitlines():
+            fields = line.split(None, 3)
+            if len(fields) == 4:
+                table[int(fields[0])] = (int(fields[1]), int(fields[2]), fields[3])
+    return table
+
+
+def start_process(command, **kwargs):
+    """Start an owned worker tree; only the returned handle authorizes stopping it.
+
+    Linux cleanup is integration-tested. POSIX uses a separate session; Windows
+    uses a process group and taskkill /T for a live parent (not a Windows Job).
+    """
+    if os.name == 'posix':
+        kwargs['start_new_session'] = True
+    elif os.name == 'nt':
+        kwargs['creationflags'] = kwargs.get('creationflags', 0) | subprocess.CREATE_NEW_PROCESS_GROUP
+    process = subprocess.Popen(command, **kwargs)
+    identity = None
+    try:
+        if os.name == 'posix':
+            entry = _process_table().get(process.pid)
+            identity = entry[2] if entry else None
+    except BaseException:
+        # Failure to establish ownership must not abandon a running child.
+        process.kill()
+        process.wait(timeout=5)
+        raise
+    process._meeting_process = {'pid': process.pid, 'identity': identity, 'stopped': False}
+    return process
+
+
+def _owned_groups(process, marker):
+    table = _process_table()
+    root = table.get(process.pid)
+    if root is None:
+        # After the child has been reaped, a bare group ID is not enough to
+        # distinguish old descendants from a subsequently reused group ID.
+        return {}
+    # An old handle must never authorize a recycled PID or someone else's group.
+    if root and (root[1] != process.pid or
+                 marker['identity'] is None or root[2] != marker['identity']):
+        raise RuntimeError('worker_process_identity_changed')
+    descendants = {process.pid}
+    while True:
+        found = {pid for pid, item in table.items() if item[0] in descendants}
+        if found <= descendants:
+            break
+        descendants.update(found)
+    group_ids = {process.pid}
+    for pid in descendants:
+        entry = table.get(pid)
+        if entry and entry[1] in descendants:
+            group_ids.add(entry[1])
+    return {group: {'leader': table[group][2] if group in table else None,
+                    'members': {pid: item[2] for pid, item in table.items() if item[1] == group}}
+            for group in group_ids}
+
+
+def _signal_groups(groups, sig):
+    table = _process_table()
+    own_group = os.getpgrp()
+    for group, ownership in groups.items():
+        leader = table.get(group)
+        if group <= 1 or group == own_group:
+            raise RuntimeError('refusing_unowned_process_group')
+        if leader and (ownership['leader'] is None or leader[2] != ownership['leader'] or leader[1] != group):
+            continue  # PID/group was recycled after our snapshot.
+        if not leader and not any(pid in table and table[pid][1] == group and table[pid][2] == identity
+                                  for pid, identity in ownership['members'].items()):
+            continue  # No surviving, previously observed member proves ownership.
+        try:
+            os.killpg(group, sig)
+        except ProcessLookupError:
+            pass
 
 
 def stop_process(process, timeout=15):
-    if process is None or process.poll() is not None:
+    if process is None:
+        return
+    marker = getattr(process, '_meeting_process', None)
+    managed = isinstance(marker, dict) and marker.get('pid') == process.pid
+    if managed and marker.get('stopped'):
+        return
+    if managed and os.name == 'posix':
+        groups = _owned_groups(process, marker)
+        _signal_groups(groups, signal.SIGTERM)
+        try:
+            process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # A cooperative worker may have started a final drain after TERM.
+            groups.update(_owned_groups(process, marker))
+        finally:
+            _signal_groups(groups, signal.SIGKILL)
+            process.wait(timeout=5)
+            marker['stopped'] = True
+        return
+    if managed and os.name == 'nt' and process.poll() is None:
+        # Only a live direct-child handle, never a PID loaded from a session file.
+        result = subprocess.run(['taskkill', '/PID', str(process.pid), '/T', '/F'],
+                                capture_output=True, timeout=max(timeout, 1))
+        if result.returncode and process.poll() is None:
+            raise RuntimeError('worker_tree_cleanup_failed')
+        process.wait(timeout=5)
+        marker['stopped'] = True
+        return
+    if process.poll() is not None:
         return
     process.terminate()
     try:
@@ -185,12 +304,41 @@ def stop_process(process, timeout=15):
         process.wait(timeout=5)
 
 
+def run_process(command, *, input=None, capture_output=False, timeout=None, check=False, **kwargs):
+    """subprocess.run-style bounded call; cancellation cleans up observed descendants.
+
+    A child that already exited and was reaped cannot authorize later signals by
+    PID alone. This is not a persistent supervisor for detached background jobs.
+    """
+    if input is not None:
+        if kwargs.get('stdin') is not None:
+            raise ValueError('stdin and input arguments may not both be used')
+        kwargs['stdin'] = subprocess.PIPE
+    if capture_output:
+        if kwargs.get('stdout') is not None or kwargs.get('stderr') is not None:
+            raise ValueError('stdout/stderr may not be used with capture_output')
+        kwargs.update(stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = start_process(command, **kwargs)
+    try:
+        stdout, stderr = process.communicate(input, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        stop_process(process, timeout=1)
+        stdout, stderr = process.communicate(timeout=5)
+        raise subprocess.TimeoutExpired(command, timeout, output=stdout, stderr=stderr) from None
+    finally:
+        stop_process(process, timeout=1)
+    result = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+    if check:
+        result.check_returncode()
+    return result
+
+
 def finish(session, monitor, backend, model, drain=True):
     stop_process(monitor.agent)
     stop_process(monitor.stt)
     if drain and monitor.stt:
         try:
-            result = subprocess.run([venv_python(), str(HERE / 'stt.py'), str(session), '--once'], timeout=300)
+            result = run_process([venv_python(), str(HERE / 'stt.py'), str(session), '--once'], timeout=300)
             if result.returncode:
                 monitor.failed = True
                 monitor.problems.add('transcript_incomplete')

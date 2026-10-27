@@ -80,6 +80,19 @@ class MinutesTests(unittest.TestCase):
             self.assertFalse((self.sess / "summary.md").exists())
             self.assertFalse((self.sess / "summary.json").exists())
 
+    def test_quote_cannot_crop_out_non_acceptance_or_speaker_context(self):
+        self.transcript("[12:00:00] Не принято: подготовить отчёт к пятнице; поручений нет.")
+
+        def ask(prompt, timeout):
+            item = fact(records(prompt)[0], type="task", text="Подготовить отчёт", due="пятнице")
+            item["evidence"][0]["quote"] = "подготовить отчёт к пятнице"
+            return json.dumps({"facts": [item]})
+
+        result = minutes.build_minutes(self.sess, ask, "synthetic:cropped-negation")
+        self.assertEqual(result["status"], "incomplete")
+        self.assertFalse((self.sess / "summary.md").exists())
+        self.assertFalse((self.sess / "summary.json").exists())
+
     def test_unknown_fields_must_be_null_and_explicit_fields_are_preserved(self):
         self.transcript("Alex will check ALPHA on Monday.")
 

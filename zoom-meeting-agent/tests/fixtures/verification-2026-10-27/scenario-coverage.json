@@ -1,0 +1,602 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "purpose": "Coverage review, not a report of 50 passed acceptance scenarios",
+  "source_scenario_count": 50,
+  "status_definition": "not_executed means the full original acceptance procedure has not been rerun against this working tree. Local or historical adapted checks are separate evidence and are not promoted to original_stand pass.",
+  "local_evidence_definition": "Existing regression source files; pointers do not by themselves assert a test execution in this review. Use the root agent final test log for executed counts.",
+  "source_copyright_note": "Scenario IDs are retained; titles and coverage notes are newly written, not a copy of the workbook text.",
+  "scenarios": [
+    {
+      "id": "F01",
+      "title": "Подключение через SDK",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_doctor.py"
+      ],
+      "remaining_validation": "Своя запущенная Zoom-встреча: подтверждение организатором, речь, файлы и отсутствие секретов в журнале."
+    },
+    {
+      "id": "F02",
+      "title": "Подключение веб-слушателя",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_browser_capture.py",
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Реальный Web Zoom: присутствие, входящее аудио и отсутствие передачи микрофона, камеры и незапрошенных сообщений."
+    },
+    {
+      "id": "F03",
+      "title": "Отказ при неверных реквизитах",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_cli_input.py",
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Неверный пароль и несуществующий номер в обоих реальных режимах; коды завершения и отсутствие оставшихся процессов."
+    },
+    {
+      "id": "F04",
+      "title": "Допуск из ожидания",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Организатор реального Zoom допускает, отклоняет и превышает лимит ожидания; локальная комната не заменяет этот прогон."
+    },
+    {
+      "id": "F05",
+      "title": "Авторизация и ограничения входа",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_cli_input.py"
+      ],
+      "remaining_validation": "Свои действующие/истёкшие cookies, SSO и captcha; проверка сообщения об ограничении без обхода политики встречи."
+    },
+    {
+      "id": "F06",
+      "title": "Начало и завершение встречи",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_browser_capture.py"
+      ],
+      "remaining_validation": "Начало и завершение организатором настоящей встречи; время остановки и сохранность результата."
+    },
+    {
+      "id": "F07",
+      "title": "Очередность и полнота речи",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_transcript_tail.py"
+      ],
+      "remaining_validation": "Нумерованная размеченная речь через Zoom и настоящий Whisper; сверка отсутствующих фраз. Поздние chunks больше не перезапускают голосовые ответы."
+    },
+    {
+      "id": "F08",
+      "title": "Короткий заключительный фрагмент",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_browser_capture.py",
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_stt.py"
+      ],
+      "remaining_validation": "Реальные 5/15/35-секундные встречи со словами на границе остановки. Локально исправлено постоянное вычитание 20 секунд: начало оценивается по длине декодированного mono 16 kHz аудио от browser end timestamp; это approximate end-based время, не точность до семпла или слова."
+    },
+    {
+      "id": "F09",
+      "title": "Критические сущности речи",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py"
+      ],
+      "remaining_validation": "Аудио с именами, суммами, датами и смешанными терминами; независимая сверка ошибок STT и конечного протокола."
+    },
+    {
+      "id": "F10",
+      "title": "Разрешённые обращения к агенту",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_agent_events.py",
+        "zoom-meeting-agent/tests/test_transcript_tail.py"
+      ],
+      "remaining_validation": "Реальный SDK чат и голос: активация, cooldown, случайные упоминания и отсутствие лишних ответов."
+    },
+    {
+      "id": "F11",
+      "title": "Единая идентичность агента",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_agent_events.py",
+        "zoom-meeting-agent/tests/test_cli_input.py"
+      ],
+      "remaining_validation": "SDK-встреча с изменённым именем и наблюдением после ответа; отсутствие цикла собственных сообщений."
+    },
+    {
+      "id": "F12",
+      "title": "Адресат двух параллельных встреч",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_routing.py",
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Две настоящие встречи с фактической доставкой уникальных ответов при обоих порядках запуска."
+    },
+    {
+      "id": "F13",
+      "title": "Расшифровка без облачной модели",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_llm.py",
+        "zoom-meeting-agent/tests/test_deepseek.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Реальная запись с локально готовым STT и сетевым наблюдением: отсутствие LLM/Telegram запросов в режиме none."
+    },
+    {
+      "id": "F14",
+      "title": "Полнота согласованных поручений",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py"
+      ],
+      "remaining_validation": "Шесть эталонных договорённостей, прошедших через речь/Zoom/STT; независимая проверка исполнителей, сроков и оснований. Полная дословная строка теперь обязательна в evidence; это не автоматическая проверка смысла."
+    },
+    {
+      "id": "F15",
+      "title": "Разделение проектов и исполнителей",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py"
+      ],
+      "remaining_validation": "Многоголосая речь разных команд и похожих задач. Автоматическая диаризация не реализована; неизвестный исполнитель должен остаться неизвестным."
+    },
+    {
+      "id": "F16",
+      "title": "Начало длинного текста не теряется",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py"
+      ],
+      "remaining_validation": "Локально полный длинный текст и чат проходят извлечение с подменённой моделью; отдельно нужна оценка качества настоящей модели на длинном контексте."
+    },
+    {
+      "id": "F17",
+      "title": "Исправления и неизвестные значения",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py"
+      ],
+      "remaining_validation": "Независимая оценка поздних исправлений и отсутствующих сведений; сейчас сохраняется история, автоматическое определение единственного актуального списка не заявляется."
+    },
+    {
+      "id": "F18",
+      "title": "Тишина и встреча только с чатом",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Живые варианты: тишина, пустая встреча, только чат. Штатный pipeline требует аудиорасшифровку для полноценного протокола; это ограничение должно быть явным."
+    },
+    {
+      "id": "F19",
+      "title": "Ручная отправка в выбранную встречу",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_routing.py"
+      ],
+      "remaining_validation": "Фактическая SDK-доставка Unicode/граничного текста и понятный отказ без активной сессии; локальная очередь не доказывает доставку."
+    },
+    {
+      "id": "F20",
+      "title": "Доставка при сбое и подтверждение",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_outbox_browser.py"
+      ],
+      "remaining_validation": "Настоящий sendChat и потеря ответа/ACK. Неопределённая доставка сохраняется без автоматического повтора; exactly-once не гарантируется."
+    },
+    {
+      "id": "F21",
+      "title": "Передача протокола в Telegram",
+      "original_stand": "not_executed",
+      "local_evidence": [],
+      "remaining_validation": "Не применимо текущему продукту: интеграция отсутствует. При добавлении нужны отдельные согласованные тесты полноты, форматирования и ошибок."
+    },
+    {
+      "id": "F22",
+      "title": "Изоляция повреждённых событий",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_agent_events.py",
+        "zoom-meeting-agent/tests/test_minutes.py"
+      ],
+      "remaining_validation": "Локальные повреждённые формы и частичные UTF-8/JSONL покрыты. Проверить потоки реального SDK и русскую кодировку на целевых ОС."
+    },
+    {
+      "id": "F23",
+      "title": "Восстановление STT без дублей",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_transcript_tail.py"
+      ],
+      "remaining_validation": "Локальное восстановление и поздний chunk проверены; нужен аварийный полный pipeline с настоящим Whisper и сохранёнными аудиофрагментами."
+    },
+    {
+      "id": "F24",
+      "title": "Границы режимов и языки интерфейса",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_doctor.py"
+      ],
+      "remaining_validation": "Реальный вход с русским/английским интерфейсом и сверка документированной матрицы; полный русский Web-вход пока не подтверждён."
+    },
+    {
+      "id": "N01",
+      "title": "Защита локального управления",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Локальный HTTP покрывает token/Host/Origin/cross-site; отдельно подтвердить всю связку в разрешённой SDK-встрече."
+    },
+    {
+      "id": "N02",
+      "title": "Ограничение путей записи",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py",
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_setup_sdk.py"
+      ],
+      "remaining_validation": "Локальные traversal/symlink/hardlink/дубли покрыты; проверить реальные файловые системы целевых ОС. Это не защита от любого процесса той же учётной записи."
+    },
+    {
+      "id": "N03",
+      "title": "Привязка подписи к встрече",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py"
+      ],
+      "remaining_validation": "Локальная подпись и срок проверены на ложных ключах; принятие настоящим Zoom SDK требует собственного тестового приложения."
+    },
+    {
+      "id": "N04",
+      "title": "Лимиты входящих запросов",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py",
+        "zoom-meeting-agent/tests/test_deepseek.py"
+      ],
+      "remaining_validation": "Локальные размеры, формы, медленное тело и очередь покрыты; длительное ресурсное поведение HTTP отдельно относится к нагрузочным сценариям."
+    },
+    {
+      "id": "N05",
+      "title": "Текстовая граница модели",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_llm.py",
+        "zoom-meeting-agent/tests/test_codex_boundary.py",
+        "zoom-meeting-agent/tests/test_deepseek.py"
+      ],
+      "remaining_validation": "Настоящий Claude и DeepSeek на синтетических атаках, сеть и канарейки. Codex CLI может включать глобальные инструкции; отсутствие tools не означает отсутствие всего служебного контекста."
+    },
+    {
+      "id": "N06",
+      "title": "Инструкции-атаки внутри данных",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Сохранён ограниченный живой Codex-текстовый прогон; повтор на текущих провайдерах/промпте и независимом корпусе. Механическая цитата не доказывает смысл факта."
+    },
+    {
+      "id": "N07",
+      "title": "Секреты в выводе и файлах",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_cli_input.py",
+        "zoom-meeting-agent/tests/test_llm.py",
+        "zoom-meeting-agent/tests/test_deepseek.py",
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py",
+        "zoom-meeting-agent/tests/test_setup_sdk.py"
+      ],
+      "remaining_validation": "Локальные canary и права покрыты; дополнительно реальный вход/ошибки всех режимов, браузерные артефакты и целевые ОС. История приватных окружений не сканировалась."
+    },
+    {
+      "id": "N08",
+      "title": "Наблюдаемый исходящий поток данных",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_llm.py",
+        "zoom-meeting-agent/tests/test_deepseek.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Полная сетевая трасса настоящей встречи с выключенной/включённой моделью; проверить именно переданные данные, а не только структуру вызова."
+    },
+    {
+      "id": "N09",
+      "title": "Доступ и жизненный цикл файлов",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_cli_input.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Проверка вторым пользователем ОС, Windows ACL и удаление всех копий по выбранному сроку хранения. Автоматическое удаление не заявляется."
+    },
+    {
+      "id": "N10",
+      "title": "Изоляция плохого аудиофрагмента",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Настоящий ffmpeg и следующий корректный WebM проверены локально; полный речевой прогон с Whisper отдельно."
+    },
+    {
+      "id": "N11",
+      "title": "Ограничение зависших процессов",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_process_tree.py",
+        "zoom-meeting-agent/tests/test_deepseek.py"
+      ],
+      "remaining_validation": "Новая очистка живого дерева проверена Linux-процессами. Реальные зависшие ffmpeg/Whisper в записи, Windows/macOS и внешняя остановка supervisor требуют отдельных прогонов."
+    },
+    {
+      "id": "N12",
+      "title": "Отказы модели не становятся ответом",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_llm.py",
+        "zoom-meeting-agent/tests/test_deepseek.py",
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Инъецированные ошибки и повтор протокола покрыты; проверить реальные отказы авторизации/квоты поддерживаемых провайдеров без намеренного расходования чужих лимитов."
+    },
+    {
+      "id": "N13",
+      "title": "Разрыв связи со встречей",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_browser_capture.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Настоящие отключения сети на согласованные интервалы; контроль фразы после восстановления и правдивого неполного статуса."
+    },
+    {
+      "id": "N14",
+      "title": "Очистка после ошибки браузера",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_process_tree.py"
+      ],
+      "remaining_validation": "Linux-процессы и loopback-сервер проверены локально; повторить launch/context/goto сбои на каждой заявляемой ОС."
+    },
+    {
+      "id": "N15",
+      "title": "Завершение с очередью STT",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_process_tree.py"
+      ],
+      "remaining_validation": "Очередь длительного настоящего распознавания при остановке встречи; проверить обработку последней задачи и момент начала протокола."
+    },
+    {
+      "id": "N16",
+      "title": "Сигналы остановки и аварийность",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_stt.py",
+        "zoom-meeting-agent/tests/test_process_tree.py",
+        "zoom-meeting-agent/tests/test_transcript_tail.py"
+      ],
+      "remaining_validation": "Полная запись при Ctrl+C/SIGTERM и принудительной аварии. После SIGKILL supervisor автоматическая безопасная очистка уже переподчинённых процессов не гарантируется."
+    },
+    {
+      "id": "N17",
+      "title": "Скорость под часовым потоком",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_doctor.py",
+        "zoom-meeting-agent/tests/test_stt.py"
+      ],
+      "remaining_validation": "Час реального потока на выбранном минимальном оборудовании, очередь и p95 текста/STT. Двухминутный синтетический замер не заменяет его."
+    },
+    {
+      "id": "N18",
+      "title": "Задержка ответов и бюджет",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_agent_events.py",
+        "zoom-meeting-agent/tests/test_minutes.py"
+      ],
+      "remaining_validation": "Двадцать настоящих ответов с p95, стоимостью и всплеском. Локально подтверждены лимиты попыток; фактический денежный бюджет не измерен."
+    },
+    {
+      "id": "N19",
+      "title": "Память, CPU и заполнение диска",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_runtime.py",
+        "zoom-meeting-agent/tests/test_doctor.py",
+        "zoom-meeting-agent/tests/test_setup_environment.py"
+      ],
+      "remaining_validation": "Два часа на согласованном оборудовании и отдельном почти полном томе; локальные пороги диска не являются измерением длительной RAM/CPU нагрузки."
+    },
+    {
+      "id": "N20",
+      "title": "Четырёхчасовая непрерывная запись",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_process_tree.py",
+        "zoom-meeting-agent/tests/test_runtime.py"
+      ],
+      "remaining_validation": "Четыре часа полного Zoom pipeline с контрольными фразами, метриками и финальным хвостом. Такой прогон не выполнен."
+    },
+    {
+      "id": "N21",
+      "title": "Коллизии и независимость сессий",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_routing.py",
+        "zoom-meeting-agent/tests/test_control.py",
+        "zoom-meeting-agent/tests/test_mcp_server.py"
+      ],
+      "remaining_validation": "Одновременные реальные SDK/Web встречи и одинаковый номер; остановка одной не должна менять другую. Локальная маршрутизация/идентификаторы покрыты."
+    },
+    {
+      "id": "N22",
+      "title": "Качество распознавания на эталоне",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_stt.py"
+      ],
+      "remaining_validation": "Независимый человеческий корпус с шумом/наложениями и критическими сущностями. Piper 17,8% WER на двух минутах не достиг предложенного 15%; пороги не являются согласованной приёмкой."
+    },
+    {
+      "id": "N23",
+      "title": "Повторяемость протокола",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py",
+        "zoom-meeting-agent/tests/test_evaluate_minutes.py"
+      ],
+      "remaining_validation": "Есть 50 генераций синтетических текстов с 49 строгими успехами; один пропуск непринятого предложения. Нужна независимая разметка и оценка текущего кода/моделей, а не перенос старых процентов."
+    },
+    {
+      "id": "N24",
+      "title": "Чистая установка на целевых ОС",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_setup_environment.py",
+        "zoom-meeting-agent/tests/test_doctor.py",
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_skill_entry.py"
+      ],
+      "remaining_validation": "Linux, Windows 11 и macOS с реальными F01/F02/F13, путями с пробелами, кодировками и временем установки. Другие ОС не подтверждены."
+    },
+    {
+      "id": "N25",
+      "title": "Повтор установки и смена SDK",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_setup_environment.py",
+        "zoom-meeting-agent/tests/test_setup_sdk.py",
+        "zoom-meeting-agent/tests/test_doctor.py"
+      ],
+      "remaining_validation": "Два чистых Linux-окружения исторически совпали; staged SDK/rollback и manifest проверены на синтетике. Нужны реальный SDK upgrade/downgrade, Zoom smoke, проверка опубликованного lock/manifest и остальных ОС."
+    },
+    {
+      "id": "N26",
+      "title": "Самостоятельный запуск новичком",
+      "original_stand": "not_executed",
+      "local_evidence": [
+        "zoom-meeting-agent/tests/test_configuration.py",
+        "zoom-meeting-agent/tests/test_skill_entry.py",
+        "zoom-meeting-agent/tests/test_setup_environment.py",
+        "zoom-meeting-agent/tests/test_doctor.py"
+      ],
+      "remaining_validation": "Независимый человек проходит документацию с чистого профиля без подсказок автора; фиксирует затруднения, время, доступ к сервисам и затраты."
+    }
+  ],
+  "resolved_during_final_review": [
+    {
+      "id": "C01",
+      "priority": "P2",
+      "files": [
+        "zoom-meeting-agent/minutes.py:288"
+      ],
+      "finding": "Evidence validator accepts a substring although the prompt requires the entire source record; a quote may omit an explicit rejection surrounding the phrase.",
+      "reproduction": "Synthetic _validate accepts task quote «подготовить отчёт к пятнице» from source «Не принято: подготовить отчёт к пятнице; поручений нет.»",
+      "boundary": "Fixing this validates citation context, not full semantic correctness.",
+      "status": "fixed_with_local_regression",
+      "evidence": [
+        "zoom-meeting-agent/tests/test_minutes.py"
+      ]
+    },
+    {
+      "id": "C02",
+      "priority": "P2",
+      "files": [
+        "zoom-meeting-agent/stt.py:193",
+        "zoom-meeting-agent/static/audio-hook.js:67"
+      ],
+      "finding": "Chunk filename is stamped at completion but STT unconditionally subtracts 20 seconds. A five-second tail is labelled 15 seconds before its actual start.",
+      "reproduction": "For a synthetic chunk starting 12:00:00 and ending 12:00:05, current computation gives 11:59:45.",
+      "boundary": "Text preservation is distinct from timestamp accuracy.",
+      "status": "fixed_with_local_regression",
+      "evidence": [
+        "zoom-meeting-agent/tests/test_stt.py"
+      ]
+    },
+    {
+      "id": "C03",
+      "priority": "P1",
+      "status": "fixed_with_local_regression",
+      "finding": "A late STT chunk reordered transcript.md and previously raised uncaught ValueError in the reply listener.",
+      "resolution": "Speech now uses occurrence-counted line digests; chat remains append-only; the complete chronological transcript still feeds minutes.",
+      "evidence": [
+        "zoom-meeting-agent/tests/test_transcript_tail.py"
+      ]
+    }
+  ],
+  "remaining_code_findings": [],
+  "remaining_code_findings_note": "No additional concrete code defect is asserted by this bounded review. This is not proof of absence. Operational and semantic limits remain in each scenario.",
+  "local_evidence_sha256": {
+    "zoom-meeting-agent/tests/test_agent_events.py": "45c60bc2f1fd50d429114b56b300278207a512ccc3e0fd0b4c645cf232f8ce7d",
+    "zoom-meeting-agent/tests/test_browser_capture.py": "b257d16a88f9b74e6644e64d7b4d79545fa8976e813cc436248dd7b5f16c99b3",
+    "zoom-meeting-agent/tests/test_cli_input.py": "88ef1aa6eb9152a6ba6616910ac471fc57d6da61c8db9d7ae5979a335dfcc4fa",
+    "zoom-meeting-agent/tests/test_codex_boundary.py": "e13e07a0041f9d5560a2e6e21f06bd11b557b759f2eafdb75a434507b038e837",
+    "zoom-meeting-agent/tests/test_configuration.py": "55b9810eae4f8b850c9cfd45b1f84da45161e314a8398a46e9a34962a0370927",
+    "zoom-meeting-agent/tests/test_control.py": "155cdae1de1dfb3b839b146a08e637b66a1b47435b4d22ea999e01a2850daa30",
+    "zoom-meeting-agent/tests/test_deepseek.py": "0d017123b117ee19b93f9cafbb2ccb96d71b6cfacea8f7190ea3128926fa958a",
+    "zoom-meeting-agent/tests/test_doctor.py": "ebdc4548af7dec8784f4ea8b1ae980ae1d83ff3368e7f3a3afdac0bf056396d6",
+    "zoom-meeting-agent/tests/test_evaluate_minutes.py": "d8083ee01790f6c39e9528c45faee7ff6f4b7d073961e98b2fcc8e144279ded0",
+    "zoom-meeting-agent/tests/test_llm.py": "0eaf60e6769fd490da1d474bf54729981dc340f77be82467d1d0650d45fb2df4",
+    "zoom-meeting-agent/tests/test_mcp_server.py": "386d30e4f276e05d3844a2b2ed76c4d8095a71753f1b1d4b3dfba65e28165166",
+    "zoom-meeting-agent/tests/test_minutes.py": "ce6b2811c37e3a7f2f702401707c91f0f4f3bd8d0261e222c1d3ceb84be965c0",
+    "zoom-meeting-agent/tests/test_outbox_browser.py": "79038f3105e8a40e3ab623854cc4d29b56cfe1cbe2d12edf7e12c9e8c9471ad4",
+    "zoom-meeting-agent/tests/test_process_tree.py": "9dc628f8b95020740b676dfdf7dfbf5f77b62c367b899d3503d1f0c03bbf0995",
+    "zoom-meeting-agent/tests/test_routing.py": "224713e404bbed18b9363507da4d0746dd8966a088ed3adbf9b1c4d3c4df18e8",
+    "zoom-meeting-agent/tests/test_runtime.py": "403636697cf6c48eca8b80a8413c06dd20523d528a57fb793909fe2d35c7d282",
+    "zoom-meeting-agent/tests/test_setup_environment.py": "d0170369501412916da9251948ce5d8d7a40ae96e7f69c5a5dc6ae2448328b05",
+    "zoom-meeting-agent/tests/test_setup_sdk.py": "8a289f3f3a503b3a73e3aba8aa034f349a312459d173f46224e68bdcd0fe964e",
+    "zoom-meeting-agent/tests/test_skill_entry.py": "7b07b74f7d865adf7862e55fd29d791ac645f0c9b7fd834b36e14414f1b77657",
+    "zoom-meeting-agent/tests/test_stt.py": "95e87f1a9cfc3e9d304e9cdf46490af784b9cdd8a9f298cf64740346037338f7",
+    "zoom-meeting-agent/tests/test_transcript_tail.py": "90c56d151b0333de41f4861111d48b35f9fa911229b63bf1eeea4b15b48f371f"
+  }
+}

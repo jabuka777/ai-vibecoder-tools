@@ -7,10 +7,12 @@
 Prompts go through stdin to a text-only model boundary. Minutes are saved locally.
 """
 import json
+import hashlib
+import os
 import re
 import sys
 import time
-from collections import deque
+from collections import Counter, deque
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -103,6 +105,61 @@ class LineTail:
         return lines
 
 
+class TranscriptTail:
+    """Read new speech once while STT atomically reorders older chunks.
+
+    transcript.md is a materialized view, not an append-only event journal.
+    Counts of complete-line digests preserve repeated identical lines, without
+    replaying earlier questions when a late chunk is inserted before them.
+    Chat continues to use the stricter append-only LineTail independently.
+    """
+    def __init__(self, path, at_end=True):
+        self.path, self.version = path, None
+        self.seen = Counter()
+        self.errors = 0
+        if at_end:
+            self.read()  # Starting/restarting a listener never replays old speech.
+
+    def read(self):
+        try:
+            stream = self.path.open('rb')
+        except FileNotFoundError:
+            return []
+        with stream:
+            info = os.fstat(stream.fileno())
+            version = (info.st_ino, info.st_mtime_ns, info.st_size)
+            if version == self.version:
+                return []
+            remaining, counts, lines = info.st_size, Counter(), []
+            discarding = False
+            while remaining:
+                raw = stream.readline(min(remaining, MAX_LINE_BYTES + 1))
+                if not raw:
+                    break
+                remaining -= len(raw)
+                complete = raw.endswith(b'\n')
+                if discarding or len(raw) > MAX_LINE_BYTES:
+                    if not discarding:
+                        self.errors += 1
+                    discarding = not complete
+                    continue
+                if not complete:
+                    continue  # A partial UTF-8/line append is retried next time.
+                try:
+                    line = raw.decode('utf-8')
+                except UnicodeDecodeError:
+                    self.errors += 1
+                    continue
+                digest = hashlib.sha256(raw).digest()
+                counts[digest] += 1
+                if counts[digest] > self.seen[digest]:
+                    lines.append(line)
+            for digest, count in counts.items():
+                self.seen[digest] = max(self.seen[digest], count)
+            self.version = version
+        return lines
+
+
 class ReplyBudget:
     def __init__(self, maximum=100, per_minute=6):
         self.maximum, self.per_minute = maximum, per_minute
@@ -166,7 +223,7 @@ def answer(sess: Path, who: str, question: str, *, backend="none", model=None):
 
 def listen(sess: Path, *, backend="none", model=None, max_replies=100, replies_per_minute=6):
     ev, tr = sess / "events.jsonl", sess / "transcript.md"
-    events, speech = LineTail(ev), LineTail(tr)
+    events, speech = LineTail(ev), TranscriptTail(tr)
     budget = ReplyBudget(max_replies, replies_per_minute)
     invalid, limited, failures = 0, 0, 0
 
@@ -239,7 +296,8 @@ def summary(sess: Path, *, backend="none", model=None):
         atomic_json(status_path, status)
 
     summary_status("processing")
-    selected_model = model or ("sonnet" if backend == "claude" else "gpt-6-luna")
+    from llm import default_model
+    selected_model = model or default_model(backend)
     try:
         result = build_minutes(sess,
             lambda prompt, timeout=300: ask(prompt, timeout, backend=backend, model=selected_model, session=sess),
@@ -261,7 +319,7 @@ def main():
     parser = argparse.ArgumentParser(description="Meeting replies and draft minutes")
     parser.add_argument("session", type=Path)
     parser.add_argument("--summary", action="store_true")
-    parser.add_argument("--backend", choices=["claude", "codex"], required=True)
+    parser.add_argument("--backend", choices=["claude", "codex", "deepseek"], required=True)
     parser.add_argument("--model")
     parser.add_argument("--name")
     parser.add_argument('--max-replies', type=int, default=100)

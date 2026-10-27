@@ -12,6 +12,8 @@ import subprocess
 import tempfile
 import time
 
+from runtime import run_process
+
 
 class ModelError(RuntimeError):
     pass
@@ -74,21 +76,36 @@ def codex_command(binary, model, output, extra_config=None):
 
 
 def require_codex_version(binary):
-    result = subprocess.run([binary, "--version"], capture_output=True, text=True,
+    result = run_process([binary, "--version"], capture_output=True, text=True,
                             timeout=10, env=child_environment())
     version = re.search(r"codex-cli (\d+)\.(\d+)\.(\d+)", result.stdout)
     if result.returncode or not version or tuple(map(int, version.groups())) != (0, 164, 0):
         raise ModelError("Tool isolation tested with Codex CLI 0.164.0; install @openai/codex@0.164.0")
 
 
+def default_model(backend):
+    if backend == 'deepseek':
+        from deepseek_text import default_model as api_model
+        return api_model()
+    return 'sonnet' if backend == 'claude' else 'gpt-6-luna'
+
+
 def call(prompt, *, backend, model=None, timeout=300, metrics_path=None):
-    if backend not in {"claude", "codex"}:
-        raise ModelError("Cloud LLM is disabled; choose --llm claude or --llm codex explicitly")
-    model = model or ("sonnet" if backend == "claude" else "gpt-6-luna")
-    binary = executable(backend)
+    if backend not in {"claude", "codex", "deepseek"}:
+        raise ModelError("Cloud LLM is disabled; choose --llm claude, codex or deepseek explicitly")
+    model = model or default_model(backend)
     started = time.monotonic()
     metrics = {"backend": backend, "model": model, "input_chars": len(prompt), "success": False}
     try:
+        if backend == 'deepseek':
+            from deepseek_text import request_text, TextAPIError
+            try:
+                answer, usage = request_text(prompt, role=TEXT_ROLE, model=model, timeout=timeout)
+            except TextAPIError as exc:
+                raise ModelError(str(exc)) from None
+            metrics.update(success=True, output_chars=len(answer), usage=usage)
+            return answer
+        binary = executable(backend)
         if backend == "codex":
             require_codex_version(binary)
         with tempfile.TemporaryDirectory(prefix="meeting-llm-") as directory:
@@ -106,7 +123,7 @@ def call(prompt, *, backend, model=None, timeout=300, metrics_path=None):
                        "--disable-slash-commands", "--setting-sources", "",
                        "--settings", '{"disableAllHooks":true}',
                        "--output-format", "json"]
-            result = subprocess.run(cmd, input=prompt, capture_output=True, text=True,
+            result = run_process(cmd, input=prompt, capture_output=True, text=True,
                                     timeout=timeout, cwd=folder, encoding="utf-8",
                                     env=child_environment())
             if result.returncode:

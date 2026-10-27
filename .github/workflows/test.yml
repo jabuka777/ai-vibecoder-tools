@@ -17,8 +17,9 @@ jobs:
         with:
           node-version: '22'
       - run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - run: python -m pip install playwright==1.62.0
+      - run: python -m pip install playwright==1.62.0 -r zoom-meeting-agent/requirements-mcp.txt
       - run: python -m playwright install --with-deps chromium
       - run: npm install -g @openai/codex@0.164.0
       - run: python -m unittest discover -s zoom-meeting-agent/tests -v
       - run: python zoom-meeting-agent/tools/evaluate_minutes.py --offline
+      - run: python tools/build_release.py --output dist/zoom-meeting-agent.zip

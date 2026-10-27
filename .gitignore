@@ -5,3 +5,12 @@ __pycache__/
 .DS_Store
 
 dist/
+meetings/
+runs/
+.setup-state.json
+.setup.lock
+.sdk-backups/
+.sdk-setup.lock
+.sdk-stage-*/
+sdk-installation.json
+installation.json
