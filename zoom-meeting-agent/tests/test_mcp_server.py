@@ -29,7 +29,9 @@ CORE = "2026-10-27_120000-123456789-web-1234abcd"
 class BoundaryTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
-        self.home = Path(self.temporary.name) / "home"
+        # macOS /var is an OS symlink; use its canonical temporary root without
+        # weakening the production rejection of links inside the private store.
+        self.home = Path(self.temporary.name).resolve() / "home"
         self.manager = bridge.MeetingTools(self.home)
         self.store = self.manager.store
 
@@ -378,7 +380,7 @@ class SDKTests(unittest.TestCase):
             self.assertIn("recording_confirmation_required", encoded)
 
         with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()) as stdout:
-            home = Path(folder) / "not-created"
+            home = Path(folder).resolve() / "not-created"
             asyncio.run(exercise(home))
             self.assertFalse(home.exists())
             self.assertEqual(stdout.getvalue(), "")
@@ -400,7 +402,7 @@ class SDKTests(unittest.TestCase):
                     self.assertFalse(json.loads(result.content[0].text)["zoom_join_checked"])
 
         with tempfile.TemporaryDirectory() as folder:
-            home = Path(folder) / "not-created"
+            home = Path(folder).resolve() / "not-created"
             asyncio.run(exercise(home))
             self.assertFalse(home.exists())
 

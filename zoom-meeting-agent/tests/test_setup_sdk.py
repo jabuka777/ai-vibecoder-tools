@@ -21,7 +21,7 @@ class SDKSetupTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.home = Path(self.temporary.name)
+        self.home = Path(self.temporary.name).resolve()
         self.static = self.home / 'product' / 'static'
         (self.static / 'lib').mkdir(parents=True)
         (self.static / 'lib' / 'old.asset').write_bytes(b'old SDK')

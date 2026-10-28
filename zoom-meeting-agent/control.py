@@ -147,7 +147,8 @@ class State:
 
 
 def _event(rec):
-    if not isinstance(rec, dict) or not isinstance(rec.get("kind"), str):
+    if (not isinstance(rec, dict) or set(rec) - {"kind", "data", "ts"}
+            or not isinstance(rec.get("kind"), str)):
         raise ValueError("event must have a kind")
     if not re.fullmatch(r"[a-z][a-z0-9_]{0,47}", rec["kind"]):
         raise ValueError("invalid event kind")
@@ -311,11 +312,15 @@ def make_handler(st):
                 if u.path == "/event":
                     st.event(value)
                 elif u.path.startswith('/outbox/'):
-                    if not isinstance(value, dict) or not isinstance(value.get('id'), str):
+                    expected_fields = {'id'} if u.path.endswith('/claim') else {'id', 'state'}
+                    if (not isinstance(value, dict) or set(value) != expected_fields
+                            or not isinstance(value.get('id'), str)):
                         return self._send(400)
                     action = 'claim' if u.path.endswith('/claim') else value.get('state')
                     return self._send(st.delivery(value['id'], action))
                 else:
+                    if not isinstance(value, dict) or set(value) != {'message'}:
+                        return self._send(400)
                     message = value.get("message") if isinstance(value, dict) else None
                     if not isinstance(message, str) or not message.strip() or len(message) > MAX_MESSAGE_CHARS:
                         return self._send(400)

@@ -1,0 +1,76 @@
+name: Portable installation acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['zoom-acceptance-*']
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Package the exact tested commit
+        run: python tools/portable_acceptance.py pack --output "${{ runner.temp }}/source-package" --revision "${{ github.sha }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-source-${{ github.sha }}
+          path: ${{ runner.temp }}/source-package/
+          if-no-files-found: error
+          retention-days: 14
+
+  installation:
+    needs: source
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 50
+    env:
+      ACCEPTANCE_RUNNER_LABEL: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: acceptance-source-${{ github.sha }}
+          path: ${{ runner.temp }}/source-package
+      - name: Prepare ffmpeg and browser system libraries (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python -m pip install playwright==1.62.0
+          python -m playwright install-deps chromium
+      - name: Prepare ffmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: command -v ffmpeg || brew install ffmpeg
+      - name: Prepare ffmpeg (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
+            choco install ffmpeg --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Fresh ZIP installation, resume, real browser and local speech
+        run: python "${{ runner.temp }}/source-package/portable_acceptance.py" run --package "${{ runner.temp }}/source-package" --work "${{ runner.temp }}/Zoom acceptance Данные" --report "${{ runner.temp }}/acceptance-evidence/report.json" --revision "${{ github.sha }}"
+      - name: Retain bounded synthetic evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-${{ matrix.os }}-${{ github.sha }}
+          path: ${{ runner.temp }}/acceptance-evidence/
+          if-no-files-found: error
+          retention-days: 14

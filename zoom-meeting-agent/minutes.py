@@ -54,6 +54,11 @@ WHAT COUNTS AS ONE FACT:
   actionable task. Do not create a second decision for a task's "согласовано".
 - proposal = an unaccepted suggestion, possibility, conditional offer, or proposed
   CHANGE to an existing agreement. Keep its condition/non-acceptance in text.
+  A concrete proposal is a required ledger fact even when the next line says
+  the decision is deferred, there is no agreement, or no work has been assigned.
+  These statements prevent type=task; they do not erase the proposal. Cite the
+  proposal together with its non-acceptance. Before returning an empty facts
+  array, check that there are no concrete proposals or cancellations either.
 - cancelled = an explicit cancellation/rejection of a previously stated task or
   proposal, including cancellation of OLD terms when a correction is accepted.
   Its fields always identify the item being cancelled, never the replacement.

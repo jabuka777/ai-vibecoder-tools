@@ -39,6 +39,13 @@ from minutes import build_minutes
 MAX_LINE_BYTES = 64 * 1024
 
 
+def log_status(message):
+    """Status output must not turn a saved result into a failed command."""
+    encoding = getattr(sys.stdout, 'encoding', None) or 'utf-8'
+    printable = str(message).encode(encoding, errors='backslashreplace').decode(encoding)
+    print(printable, flush=True)
+
+
 def parse_event(line):
     try:
         event = json.loads(line)
@@ -218,7 +225,7 @@ def answer(sess: Path, who: str, question: str, *, backend="none", model=None):
     text = ask(prompt, backend=backend, model=model, session=sess)
     if text:
         say(sess, text[:1000])
-        print("[agent] ответ поставлен в очередь выбранной сессии", flush=True)
+        log_status("[agent] ответ поставлен в очередь выбранной сессии")
 
 
 def listen(sess: Path, *, backend="none", model=None, max_replies=100, replies_per_minute=6):
@@ -278,7 +285,7 @@ def summary(sess: Path, *, backend="none", model=None):
         if (not isinstance(status, dict) or status.get("recording_complete") is not True
                 or status.get("incomplete")
                 or status.get("state") not in ("recorded", "summarizing", "summary_failed", "complete")):
-            print("[agent] завершённая запись не подтверждена; проверьте status.json и исходники", flush=True)
+            log_status("[agent] завершённая запись не подтверждена; проверьте status.json и исходники")
             return False
     # No status file is supported only for explicitly supplied legacy transcripts.
     def summary_status(state):
@@ -307,10 +314,10 @@ def summary(sess: Path, *, backend="none", model=None):
         raise
     if result["status"] != "complete":
         summary_status("failed")
-        print("[agent] протокол не завершён; см. minutes-status.json", flush=True)
+        log_status("[agent] протокол не завершён; см. minutes-status.json")
         return False
     summary_status("complete")
-    print(f"[agent] черновик протокола: {sess / 'summary.md'}", flush=True)
+    log_status(f"[agent] черновик протокола: {sess / 'summary.md'}")
     return True
 
 

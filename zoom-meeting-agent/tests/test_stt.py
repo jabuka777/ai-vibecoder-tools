@@ -16,6 +16,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 MODULE = Path(__file__).resolve().parents[1] / "stt.py"
+sys.path.insert(0, str(MODULE.parent))
 spec = importlib.util.spec_from_file_location("meeting_stt", MODULE)
 stt = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(stt)
@@ -106,6 +107,45 @@ class STTTests(unittest.TestCase):
         # A drain/restart must retain the incomplete status, not turn it green.
         self.assertEqual(self.run_worker(), 1)
         self.assertEqual(self.health()["error_count"], 1)
+
+    @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux process ownership probe')
+    def test_decoder_timeout_stops_real_descendant_process(self):
+        import runtime
+        decoder = self.session / 'hanging-ffmpeg'
+        child_pid = self.session / 'decoder-child.pid'
+        decoder.write_text(
+            f'#!{sys.executable}\n'
+            'import subprocess,sys,time\n'
+            'from pathlib import Path\n'
+            'p=subprocess.Popen([sys.executable,"-c","import time; time.sleep(60)"])\n'
+            f'Path({str(child_pid)!r}).write_text(str(p.pid))\n'
+            'time.sleep(60)\n', encoding='utf-8')
+        decoder.chmod(0o700)
+        chunk = self.chunk('1000000000000.webm')
+        # Shorten only the deadline. The decoder, its descendant, and cleanup
+        # execute as real processes; the outer bound also catches regressions.
+        code = f'''import sys,subprocess
+from pathlib import Path
+sys.path.insert(0,{str(MODULE.parent)!r})
+import stt,runtime
+original=runtime.run_process
+def bounded(*args,**kwargs):
+    kwargs['timeout']=0.3
+    return original(*args,**kwargs)
+runtime.run_process=bounded
+try:
+    stt.load(Path({str(chunk)!r}),{str(decoder)!r})
+except subprocess.TimeoutExpired:
+    pass
+else:
+    raise AssertionError('decoder did not time out')
+'''
+        result = runtime.run_process([sys.executable, '-c', code], capture_output=True,
+                                     text=True, timeout=8)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        stat = Path('/proc') / child_pid.read_text() / 'stat'
+        state = stat.read_text().rsplit(')', 1)[1].split()[0] if stat.exists() else 'gone'
+        self.assertIn(state, ('gone', 'Z'))
 
     def test_once_drains_fresh_chunk_and_does_not_duplicate_on_restart(self):
         self.chunk("1000000000000.webm")

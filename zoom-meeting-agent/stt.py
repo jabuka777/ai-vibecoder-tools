@@ -28,9 +28,10 @@ import uuid
 def load(path, ffmpeg):
     """Decode through system ffmpeg; import numerical dependencies only at runtime."""
     import numpy as np
+    from runtime import run_process
 
-    raw = subprocess.run(
-        [ffmpeg, "-v", "error", "-i", str(path), "-f", "s16le", "-ac", "1",
+    raw = run_process(
+        [ffmpeg, "-nostdin", "-v", "error", "-i", str(path), "-f", "s16le", "-ac", "1",
          "-ar", "16000", "-"], capture_output=True, check=True, timeout=120,
     ).stdout
     return np.frombuffer(raw, np.int16).astype(np.float32) / 32768.0
@@ -205,6 +206,12 @@ def run_session(session, *, once=False, model_factory=None, decoder=None,
                     )
                     text = " ".join(segment.text.strip() for segment in segments).strip()
                 except Exception as exc:
+                    # The supervisor also terminates a decoder's owned process
+                    # group during shutdown. That cancellation is not evidence
+                    # of corrupt audio: leave the chunk for the final --once
+                    # drain, which will classify any genuine decoding failure.
+                    if stop_event.is_set():
+                        break
                     quarantine(session, chunk, exc)
                     errors += 1
                     health.update(state="degraded", error_count=errors,

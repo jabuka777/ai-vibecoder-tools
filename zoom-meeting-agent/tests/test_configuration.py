@@ -148,12 +148,13 @@ class SkillInstallerTests(unittest.TestCase):
                 self.assertTrue((installed / 'scripts/zoom.py').exists())
 
     def test_config_snippets_have_absolute_commands_and_no_secrets(self):
-        snippet = installer.mcp_configuration('claude', Path('/synthetic home'))
+        home = Path(tempfile.gettempdir()).resolve() / 'synthetic home'
+        snippet = installer.mcp_configuration('claude', home)
         server = json.loads(snippet)['mcpServers']['zoom-meeting-agent']
         self.assertTrue(Path(server['command']).is_absolute())
         self.assertIn('--home', server['args'])
         self.assertNotIn('env', server)
-        self.assertTrue(installer.mcp_configuration('codex', Path('/synthetic home')).startswith('[mcp_servers.zoom-meeting-agent]'))
+        self.assertTrue(installer.mcp_configuration('codex', home).startswith('[mcp_servers.zoom-meeting-agent]'))
 
 
 if __name__ == '__main__':

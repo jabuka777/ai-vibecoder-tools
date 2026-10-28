@@ -49,6 +49,9 @@ class FakeInstallation:
             self.model = True
 
     def activate(self, stack):
+        # Exercise receipt/recovery algorithms independently of the host OS.
+        # The real unsupported-platform boundary has its own negative test.
+        stack.enter_context(patch.object(setup, 'mcp_supported', return_value=True))
         stack.enter_context(patch.object(setup, 'REQUIREMENTS', self.requirements))
         stack.enter_context(patch.object(setup, 'MCP_REQUIREMENTS', self.mcp))
         stack.enter_context(patch.object(setup, 'command', side_effect=self.execute))
@@ -85,7 +88,7 @@ class SetupTests(unittest.TestCase):
             for system in ('Linux', 'Darwin', 'Windows'):
                 result = setup.plan(self.root, system)
                 self.assertFalse(result['system_dependencies']['automatic'])
-                self.assertEqual('Scripts/python.exe' in result['venv_python'], system == 'Windows')
+                self.assertEqual('Scripts/python.exe' in Path(result['venv_python']).as_posix(), system == 'Windows')
                 self.assertTrue(all(isinstance(cmd, list) for cmd in result['system_dependencies']['commands_for_manual_review']))
         run.assert_not_called()
 

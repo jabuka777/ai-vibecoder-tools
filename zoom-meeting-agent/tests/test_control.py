@@ -213,7 +213,7 @@ class ControlTests(unittest.TestCase):
 
     def test_events_have_server_timestamp_and_health_state(self):
         with contextlib.redirect_stdout(io.StringIO()):
-            self.assertEqual(self.request("POST", "/event", b'{"kind":"joined","ts":1,"injected":"drop"}')[0], 200)
+            self.assertEqual(self.request("POST", "/event", b'{"kind":"joined","ts":1}')[0], 200)
         self.assertTrue(self.state.joined)
         self.assertEqual(self.request("POST", "/event", b'{"kind":"audio_source","data":{"type":"synthetic"}}')[0], 200)
         self.assertTrue(self.state.audio_source)
@@ -223,6 +223,25 @@ class ControlTests(unittest.TestCase):
         self.assertNotIn("injected", events[0])
         for payload in (b'[]', b'{"kind":"joined\\nforged"}', b'{"kind":"test","data":NaN}'):
             self.assertEqual(self.request("POST", "/event", payload)[0], 400)
+
+    def test_unknown_control_fields_do_not_change_state(self):
+        payload = {'message': 'synthetic', 'unexpected': True}
+        self.assertEqual(self.request('POST', '/say', json.dumps(payload).encode())[0], 400)
+        self.assertEqual(self.state.outbox, [])
+        self.assertEqual(self.request('POST', '/event', b'{"kind":"joined","unexpected":true}')[0], 400)
+        self.assertFalse(self.state.joined)
+        self.assertFalse((self.state.sess / 'events.jsonl').exists())
+        message_id = self.state.enqueue('synthetic')
+        claim = {'id': message_id, 'unexpected': True}
+        self.assertEqual(self.request('POST', '/outbox/claim', json.dumps(claim).encode())[0], 400)
+        self.assertEqual(self.state.outbox[0]['state'], 'queued')
+        self.assertEqual(self.request('POST', '/outbox/claim', json.dumps({'id': message_id}).encode())[0], 200)
+        ack = {'id': message_id, 'state': 'sent', 'unexpected': True}
+        self.assertEqual(self.request('POST', '/outbox/ack', json.dumps(ack).encode())[0], 400)
+        self.assertEqual(self.state.outbox[0]['state'], 'sending')
+        del ack['unexpected']
+        self.assertEqual(self.request('POST', '/outbox/ack', json.dumps(ack).encode())[0], 200)
+        self.assertEqual(self.state.outbox[0]['state'], 'sent')
 
     def test_malformed_chat_cannot_poison_agent_event_reader(self):
         for payload in ({"kind": "chat", "data": []},

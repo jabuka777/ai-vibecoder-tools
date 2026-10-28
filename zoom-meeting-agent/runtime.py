@@ -242,9 +242,14 @@ def _owned_groups(process, marker):
         entry = table.get(pid)
         if entry and entry[1] in descendants:
             group_ids.add(entry[1])
+    # Notify the supervisor before its decoder groups. Its SIGTERM handler must
+    # be pending before a decoder reports cancellation, so a cooperative STT
+    # worker can preserve that chunk for the final drain instead of quarantining
+    # valid audio. A set iteration could reverse this causal order.
+    ordered_groups = [process.pid, *sorted(group_ids - {process.pid})]
     return {group: {'leader': table[group][2] if group in table else None,
                     'members': {pid: item[2] for pid, item in table.items() if item[1] == group}}
-            for group in group_ids}
+            for group in ordered_groups}
 
 
 def _signal_groups(groups, sig):
