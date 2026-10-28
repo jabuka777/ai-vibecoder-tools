@@ -1,6 +1,8 @@
 .env
 .venv/
 storage_state.json
+accounts/
+login-backups/
 meeting-password.txt
 sessions/
 static/lib/

@@ -12,6 +12,7 @@ from urllib.parse import urlencode
 
 from env import APP_HOME, need, meeting_password
 from runtime import CaptureGuard, Monitor, atomic_json, cooperative_stop, finish, new_session, start_stt
+from accounts import AccountError, select_state
 
 HERE = Path(__file__).resolve().parent
 JOINED_SELECTOR = 'button.footer__leave-btn, #wc-footer button[aria-label*="Leave"], #wc-footer button[aria-label*="Выйти"]'
@@ -88,6 +89,7 @@ def main(argv=None, *, _stop):
     parser.add_argument('--pwd', help=argparse.SUPPRESS)
     parser.add_argument('--password-file', type=Path)
     parser.add_argument('--name', default='AI meeting assistant')
+    parser.add_argument('--account', choices=['personal', 'assistant', 'guest', 'default'], default='default')
     parser.add_argument('--minutes', type=float, default=180)
     parser.add_argument('--llm', choices=['none', 'claude', 'codex', 'deepseek'], default='none')
     parser.add_argument('--model')
@@ -98,6 +100,10 @@ def main(argv=None, *, _stop):
         parser.error('--minutes must be positive')
     if args.no_summary:
         args.llm = 'none'
+    try:
+        browser_state = select_state(APP_HOME, args.account)
+    except AccountError as exc:
+        parser.error(str(exc))
     need('ffmpeg')
     session = new_session(args.mn.replace(' ', ''), 'web', args.llm, args.model)
     monitor = Monitor(session)
@@ -131,13 +137,13 @@ def main(argv=None, *, _stop):
             try:
                 if _stop.is_set():
                     raise KeyboardInterrupt()
-                state = APP_HOME / 'storage_state.json'
-                stored_login = state.exists()
-                event('browser_auth', {'stored_login_supplied': stored_login, 'login_verified': False})
+                stored_login = browser_state is not None
+                event('browser_auth', {'account': args.account, 'stored_login_supplied': stored_login,
+                                       'login_verified': False})
                 print('Zoom login: ' + ('saved browser state supplied; validity not verified'
                                       if stored_login else 'guest; no saved login in selected home'), flush=True)
                 context = browser.new_context(viewport={'width': 1280, 'height': 720},
-                            storage_state=str(state) if stored_login else None)
+                            storage_state=str(browser_state) if stored_login else None)
                 context.expose_binding('__zbAudio', on_audio)
                 context.expose_binding('__zbEvent', lambda src, kind, data: event(kind, data))
                 context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))

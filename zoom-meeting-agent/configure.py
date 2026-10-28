@@ -12,6 +12,7 @@ import sys
 import tempfile
 import warnings
 from urllib.parse import parse_qs, urlsplit
+from accounts import AccountError, validate_account
 
 HERE = Path(__file__).resolve().parent
 
@@ -36,7 +37,7 @@ def profile_path(home, profile_id):
 
 
 def validate_profile(data):
-    if not isinstance(data, dict) or set(data) - {'version', 'meeting', 'password', 'name', 'minutes'}:
+    if not isinstance(data, dict) or set(data) - {'version', 'meeting', 'password', 'name', 'minutes', 'account'}:
         raise ConfigurationError('Invalid meeting profile')
     if type(data.get('version', 1)) is not int or data.get('version', 1) != 1:
         raise ConfigurationError('Unsupported meeting profile version')
@@ -50,7 +51,12 @@ def validate_profile(data):
         raise ConfigurationError('Invalid assistant name')
     if type(minutes) not in (int, float) or not math.isfinite(minutes) or not 1 <= minutes <= 480:
         raise ConfigurationError('Duration must be between 1 and 480 minutes')
-    return {'version': 1, 'meeting': meeting, 'password': password, 'name': name, 'minutes': minutes}
+    try:
+        account = validate_account(data.get('account', 'default'))
+    except AccountError:
+        raise ConfigurationError('Choose personal, assistant, guest, or default for the Zoom account') from None
+    return {'version': 1, 'meeting': meeting, 'password': password, 'name': name, 'minutes': minutes,
+            'account': account}
 
 
 def parse_meeting(value):
@@ -154,8 +160,11 @@ def credentials(home, service, replace=False):
     print('Credentials saved locally. Authentication has not been tested.')
 
 
-def run_profile(home, profile_id, *, mode='web', backend='none', model=None):
+def run_profile(home, profile_id, *, mode='web', backend='none', model=None, account=None):
     data = load_profile(home, profile_id)
+    selected = validate_account(account if account is not None else data['account'])
+    if mode != 'web' and selected not in ('default', 'guest'):
+        raise ConfigurationError('Named browser logins apply to Web mode; SDK uses separate application authorization')
     os.environ['ZOOM_AGENT_HOME'] = str(Path(home).resolve())
     # Imports happen after choosing the private home. No password is put in argv.
     from importlib import import_module
@@ -170,6 +179,8 @@ def run_profile(home, profile_id, *, mode='web', backend='none', model=None):
                 '--minutes', str(data['minutes']), '--llm', backend]
         if model:
             args += ['--model', model]
+        if mode == 'web':
+            args += ['--account', selected]
         return engine.main(args)
     finally:
         password_file.unlink(missing_ok=True)
@@ -184,6 +195,7 @@ def main(argv=None):
     create.add_argument('--name', default='AI meeting assistant')
     create.add_argument('--minutes', type=float, default=60)
     create.add_argument('--replace', action='store_true')
+    create.add_argument('--account', choices=['personal', 'assistant', 'guest', 'default'])
     for service in ('sdk', 'deepseek'):
         child = commands.add_parser(service, help='Save credentials through hidden terminal prompts')
         child.add_argument('--replace', action='store_true')
@@ -192,23 +204,35 @@ def main(argv=None):
     join.add_argument('--mode', choices=['web', 'sdk'], default='web')
     join.add_argument('--llm', choices=['none', 'claude', 'codex', 'deepseek'], default='none')
     join.add_argument('--model')
+    join.add_argument('--account', choices=['personal', 'assistant', 'guest', 'default'],
+                      help='Explicit override for this run; the saved meeting profile is unchanged')
     args = parser.parse_args(argv)
     try:
         if args.command == 'meeting':
             path = profile_path(args.home, args.profile_id)
             if path.exists() and not args.replace:
                 raise ConfigurationError('Profile already exists; choose another ID or use --replace')
+            account = args.account
+            if account is None:
+                if not sys.stdin.isatty():
+                    raise ConfigurationError('Choose --account personal, assistant, or guest in a local terminal')
+                choice = input('Zoom account: 1 personal, 2 separate assistant, 3 guest: ').strip()
+                account = {'1': 'personal', '2': 'assistant', '3': 'guest'}.get(choice)
+                if account is None:
+                    raise ConfigurationError('Choose 1, 2, or 3; nothing was saved')
             meeting, password = parse_meeting(secret('Zoom link or meeting number (hidden): '))
             if not password:
                 password = secret('Passcode (hidden; Enter if none): ')
-            data = validate_profile({'meeting': meeting, 'password': password, 'name': args.name, 'minutes': args.minutes})
+            data = validate_profile({'meeting': meeting, 'password': password, 'name': args.name,
+                                     'minutes': args.minutes, 'account': account})
             private_write(path, json.dumps(data, ensure_ascii=False, indent=2) + '\n', replace=args.replace)
             print('Meeting profile saved. It has not joined or recorded anything.')
         elif args.command == 'run':
-            return run_profile(args.home, args.profile_id, mode=args.mode, backend=args.llm, model=args.model)
+            return run_profile(args.home, args.profile_id, mode=args.mode, backend=args.llm, model=args.model,
+                               account=args.account)
         else:
             credentials(args.home, args.command, args.replace)
-    except ConfigurationError as exc:
+    except (ConfigurationError, AccountError) as exc:
         print(str(exc), file=sys.stderr)
         return 1
     except (OSError, ValueError):

@@ -367,11 +367,12 @@ class RuntimeTests(unittest.TestCase):
 
 
 class WebFlushTests(unittest.TestCase):
-    def run_web(self, *, flush_error, saved_login=False):
+    def run_web(self, *, flush_error, saved_login=False, account='default'):
         with tempfile.TemporaryDirectory() as folder:
             session = Path(folder)
+            from accounts import save_state, state_path
             if saved_login:
-                (session / 'storage_state.json').write_text('{"cookies": [], "origins": []}')
+                save_state(session, account if account != 'guest' else 'default', {'cookies': [], 'origins': []})
             (session / "transcript.md").write_text("Synthetic earlier speech", encoding="utf-8")
             page = Mock()
             page.get_by_role.return_value = Locator()
@@ -408,14 +409,15 @@ class WebFlushTests(unittest.TestCase):
                     patch.object(webjoin, "classify_page", side_effect=joined_with_audio), \
                     patch.object(webjoin.signal, "signal"), \
                     contextlib.redirect_stdout(io.StringIO()):
-                code = webjoin.main(["--mn", "123456789", "--llm", "none"])
+                code = webjoin.main(["--mn", "123456789", "--llm", "none", "--account", account])
             self.assertEqual(sum(len(call.args) == 2 for call in page.evaluate.call_args_list), 1)
             browser.close.assert_called_once()
             auth = [json.loads(line)['data'] for line in (session / 'events.jsonl').read_text().splitlines()
                     if json.loads(line)['kind'] == 'browser_auth']
-            self.assertEqual(auth, [{'stored_login_supplied': saved_login, 'login_verified': False}])
+            supplied = saved_login and account != 'guest'
+            self.assertEqual(auth, [{'account': account, 'stored_login_supplied': supplied, 'login_verified': False}])
             self.assertEqual(browser.new_context.call_args.kwargs['storage_state'],
-                             str(session / 'storage_state.json') if saved_login else None)
+                             str(state_path(session, account)) if supplied else None)
             return code, json.loads((session / "status.json").read_text(encoding="utf-8"))
 
     def test_interrupt_still_flushes_and_closes_browser(self):
@@ -433,6 +435,16 @@ class WebFlushTests(unittest.TestCase):
         code, status = self.run_web(flush_error=False, saved_login=True)
         self.assertEqual(code, 0)
         self.assertTrue(status['recording_complete'])
+
+    def test_each_named_login_reaches_only_its_browser_context(self):
+        for account in ('personal', 'assistant'):
+            with self.subTest(account=account):
+                code, status = self.run_web(flush_error=False, saved_login=True, account=account)
+                self.assertEqual(code, 0)
+
+    def test_explicit_guest_does_not_receive_existing_login(self):
+        code, status = self.run_web(flush_error=False, saved_login=True, account='guest')
+        self.assertEqual(code, 0)
 
 
 class CaptureGuardTests(unittest.TestCase):

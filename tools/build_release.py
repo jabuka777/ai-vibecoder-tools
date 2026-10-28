@@ -23,7 +23,7 @@ def release_paths():
             continue
         if path.parts[0] not in {'zoom-meeting-agent', 'zoom-meeting-agent-codex', 'skills', 'tools'}:
             continue
-        if any(part in {'sessions', 'meetings', 'runs', '.sdk-backups', '.venv', '__pycache__', '.minutes-history', '.minutes-cache'}
+        if any(part in {'sessions', 'meetings', 'runs', 'accounts', 'login-backups', '.sdk-backups', '.venv', '__pycache__', '.minutes-history', '.minutes-cache'}
                or part.startswith('.sdk-stage-') for part in path.parts):
             raise RuntimeError(f'Private data path is tracked: {name}')
         if path.name == '.env.example' or path.name == '.gitignore':

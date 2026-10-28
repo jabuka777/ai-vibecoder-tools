@@ -75,6 +75,49 @@ class BoundaryTests(unittest.TestCase):
         spawn.assert_not_called()
         self.assertFalse((self.home / "runs").exists())
 
+    def test_missing_named_account_does_not_fall_back_to_legacy_or_peer(self):
+        self.store.write_json(('meetings', 'test.json'), {**PROFILE, 'account': 'personal'})
+        self.store.write_json(('storage_state.json',), {'cookies': [], 'origins': []})
+        self.store.write_json(('accounts', 'assistant', 'storage_state.json'), {'cookies': [], 'origins': []})
+        with patch('runtime.start_process') as spawn:
+            result = self.manager.start_web('test', True)
+        self.assertEqual(result['error'], 'account_login_required')
+        spawn.assert_not_called()
+        self.assertFalse((self.home / 'runs').exists())
+
+    def test_each_account_is_copied_only_to_its_worker_and_cleaned_without_touching_original(self):
+        for role in ('personal', 'assistant'):
+            with self.subTest(role=role):
+                self.store.write_json(('meetings', 'test.json'), {**PROFILE, 'account': role})
+                login = {'cookies': [], 'origins': [], 'synthetic_marker': role}
+                self.store.write_json(('accounts', role, 'storage_state.json'), login)
+                with patch('runtime.start_process', return_value=Mock()):
+                    result = self.manager.start_web('test', True)
+                run_id = result['session_id']
+                copied = ('runs', run_id, 'accounts', role, 'storage_state.json')
+                self.assertEqual(self.store.json(copied), login)
+                self.assertFalse((self.home / 'runs' / run_id / 'storage_state.json').exists())
+                with patch('webjoin.main', return_value=1) as main, patch.dict(os.environ):
+                    mask = os.umask(0o077)
+                    try:
+                        self.assertEqual(bridge.run_worker(self.home, run_id), 1)
+                    finally:
+                        os.umask(mask)
+                args = main.call_args.args[0]
+                self.assertEqual(args[args.index('--account') + 1], role)
+                self.assertFalse(self.home.joinpath(*copied).exists())
+                self.assertEqual(self.store.json(('accounts', role, 'storage_state.json')), login)
+                self.assertEqual(self.manager.session_status(run_id)['account'], role)
+
+    def test_guest_does_not_copy_any_stored_login(self):
+        self.store.write_json(('meetings', 'test.json'), {**PROFILE, 'account': 'guest'})
+        self.store.write_json(('storage_state.json',), {'cookies': [], 'origins': []})
+        with patch('runtime.start_process', return_value=Mock()):
+            result = self.manager.start_web('test', True)
+        run = self.home / 'runs' / result['session_id']
+        self.assertFalse((run / 'storage_state.json').exists())
+        self.assertFalse((run / 'accounts').exists())
+
     def test_start_is_secret_free_no_llm_and_creates_private_unique_runs(self):
         self.profile()
         process = Mock(poll=Mock(return_value=None))

@@ -14,7 +14,9 @@ class ReleaseTests(unittest.TestCase):
     def test_private_files_are_rejected_even_when_tracked(self):
         for name in ('meeting-password.txt', 'outbox.json', 'control.json', 'storage_state.json',
                      '.setup-state.json', '.setup.lock', '.sdk-setup.lock', 'sdk-installation.json', 'installation.json',
-                     'meetings/demo.json', 'runs/123/meeting.json', '.sdk-backups/123/static/index.html', '.sdk-stage-123/index.html'):
+                     'meetings/demo.json', 'runs/123/meeting.json', 'accounts/personal/state.json',
+                     'accounts/assistant/login-backups/old.json', 'login-backups/old.json',
+                     '.sdk-backups/123/static/index.html', '.sdk-stage-123/index.html'):
             with self.subTest(name=name), patch.object(release.subprocess, 'check_output',
                     return_value=('zoom-meeting-agent/' + name + '\0').encode()):
                 with self.assertRaises(RuntimeError):

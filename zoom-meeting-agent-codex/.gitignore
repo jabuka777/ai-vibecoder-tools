@@ -2,6 +2,8 @@
 .venv/
 sessions/
 storage_state.json
+accounts/
+login-backups/
 meeting-password.txt
 *.wav
 *.mp3

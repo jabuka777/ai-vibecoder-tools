@@ -32,7 +32,8 @@ Zoom [не предназначает Web Meeting SDK для ботов и AI-п
 # Из корня всего репозитория; без ручной активации .venv
 python skills/zoom-meeting-agent/scripts/zoom.py setup --install --download-model
 python skills/zoom-meeting-agent/scripts/zoom.py doctor --check-browser --check-model --text
-python skills/zoom-meeting-agent/scripts/zoom.py configure meeting demo
+python skills/zoom-meeting-agent/scripts/zoom.py login --account personal
+python skills/zoom-meeting-agent/scripts/zoom.py configure meeting demo --account personal
 python skills/zoom-meeting-agent/scripts/zoom.py configure run demo
 ```
 
@@ -58,7 +59,7 @@ cd jabuka-tools/zoom-meeting-agent
 python -m venv .venv
 ```
 
-Активировать окружение: `source.venv/bin/activate` на Linux/macOS, `.venv\Scripts\Activate.ps1` в Windows PowerShell.
+Активировать окружение: `source .venv/bin/activate` на Linux/macOS, `.venv\Scripts\Activate.ps1` в Windows PowerShell.
 
 ```bash
 python -m pip install -r requirements.txt
@@ -73,10 +74,33 @@ python doctor.py --check-browser --check-model
 
 ## Запуск
 
+### Личный аккаунт и аккаунт ассистента
+
+Оба варианта поддерживаются через независимые браузерные профили:
+
+```bash
+python login.py --account personal
+python login.py --account assistant
+python login.py --list
+python configure.py meeting demo --account personal
+python configure.py run demo
+```
+
+Для отдельного аккаунта встречи укажите `--account assistant`. Он создаётся
+самим пользователем, если его ещё нет. Пароли/MFA вводятся в браузере; входы
+хранятся раздельно и не попадают в MCP или журналы. Выбранный профиль сохраняется
+для встречи. `configure.py run demo --account assistant` меняет выбор только
+для одного запуска. Отсутствующий выбранный вход даёт ошибку до подключения;
+другой аккаунт и гость не подставляются. Гостевой режим — `--account guest`.
+Обновление одного входа: `login.py --account personal --replace` с приватной
+резервной копией прежнего файла. Старый одиночный вход поддерживается как
+`default`; новые встречи лучше создавать с явным выбором аккаунта.
+Подробности и перенос старого входа — [аккаунты](../skills/zoom-meeting-agent/references/accounts.md).
+
 Без облачной LLM, Web:
 
 ```bash
-python webjoin.py --mn 12345678901 --minutes 60
+python webjoin.py --mn 12345678901 --account personal --minutes 60
 ```
 
 Если нужен пароль встречи, сохраните его в локальный файл с доступом только вам и добавьте `--password-file meeting-password.txt`. Значение пароля не передаётся аргументом процесса. Старый `--pwd` отклоняется до запуска браузера с подсказкой о новом параметре. Не добавляйте файл пароля в Git. При обычном требовании входа аккаунтом используйте `python login.py`. Явный запрет ботов (`zoom_automation_blocked`) требует остановки; авторизация под видом человека не является способом его устранить. Учётная сессия сохраняется в `storage_state.json`; не передавайте этот файл другим людям.

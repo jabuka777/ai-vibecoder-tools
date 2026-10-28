@@ -21,6 +21,11 @@ RTMS пока не реализован. [Результаты проверки]
 
 ## Если устанавливаете сами
 
+Выберите личный Zoom-аккаунт (`personal`) или отдельный аккаунт ассистента
+(`assistant`). Можно настроить оба; каждый хранится отдельно. Если отдельного
+аккаунта ещё нет, его создаёт пользователь в Zoom. Пароль и подтверждения
+вводятся локально; сам вход не гарантирует доступ к встрече.
+
 Скачайте репозиторий целиком через GitHub → Code → Download ZIP и распакуйте.
 Откройте терминал в распакованной папке. Нужен Python 3.10+, предпочтительно 3.12.
 На Windows вместо `python` может потребоваться `py`, на macOS/Linux `python3`.
@@ -43,14 +48,16 @@ python tools/install_zoom_skill.py --client cursor
 python skills/zoom-meeting-agent/scripts/zoom.py setup
 python skills/zoom-meeting-agent/scripts/zoom.py setup --install --download-model
 python skills/zoom-meeting-agent/scripts/zoom.py doctor --check-browser --check-model --text
-python skills/zoom-meeting-agent/scripts/zoom.py configure meeting demo --minutes 60
+python skills/zoom-meeting-agent/scripts/zoom.py login --account personal
+python skills/zoom-meeting-agent/scripts/zoom.py configure meeting demo --account personal --minutes 60
 ```
 
 Последняя команда попросит ссылку и пароль скрыто в терминале. Они сохраняются
-локально и не нужны в переписке с ассистентом. Если Zoom требует вход в аккаунт:
+локально и не нужны в переписке с ассистентом. Для отдельного аккаунта замените
+`personal` на `assistant` в обеих командах. Посмотреть наличие сохранённых входов:
 
 ```bash
-python skills/zoom-meeting-agent/scripts/zoom.py login
+python skills/zoom-meeting-agent/scripts/zoom.py login --list
 ```
 
 Войдите в открывшемся браузере и нажмите Enter в терминале. Затем предупредите

@@ -46,16 +46,18 @@ class CliInputTests(unittest.TestCase):
 
     def test_login_state_is_private_and_cookie_is_not_printed(self):
         from playwright import sync_api
+        import login
         with tempfile.TemporaryDirectory() as directory:
             manager = MagicMock()
             context = manager.__enter__.return_value.chromium.launch.return_value.new_context.return_value
             context.storage_state.return_value = {'cookies': [{'value': 'FALSE_CANARY_COOKIE'}]}
             output = io.StringIO()
-            with patch.object(env, 'APP_HOME', Path(directory)), \
+            with patch.object(login, 'APP_HOME', Path(directory)), \
                     patch.object(sync_api, 'sync_playwright', return_value=manager), \
+                    patch.object(login.sys.stdin, 'isatty', return_value=True), \
                     patch('builtins.input', return_value=''), contextlib.redirect_stdout(output):
-                runpy.run_path(str(Path(__file__).resolve().parents[1] / 'login.py'), run_name='__main__')
-            path = Path(directory) / 'storage_state.json'
+                self.assertEqual(login.main(['--account', 'personal']), 0)
+            path = Path(directory) / 'accounts' / 'personal' / 'storage_state.json'
             self.assertEqual(json.loads(path.read_text())['cookies'][0]['value'], 'FALSE_CANARY_COOKIE')
             self.assertNotIn('FALSE_CANARY_COOKIE', output.getvalue())
             if os.name != 'nt':

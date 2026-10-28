@@ -24,7 +24,7 @@ cd jabuka-tools/zoom-meeting-agent-codex
 python -m venv .venv
 ```
 
-Активировать: `source.venv/bin/activate` на Linux/macOS или `.venv\Scripts\Activate.ps1` в Windows PowerShell.
+Активировать: `source .venv/bin/activate` на Linux/macOS или `.venv\Scripts\Activate.ps1` в Windows PowerShell.
 
 ```bash
 python -m pip install -r requirements.txt
@@ -41,12 +41,16 @@ CLI может добавить к тексту встречи глобальн�
 
 ## Попробовать
 
-Для встречи с обязательным входом аккаунтом: `python run.py login`. После входа закройте настройку нажатием Enter в терминале.
+Для личного аккаунта: `python run.py login --account personal`.
+Для отдельного аккаунта ассистента: `python run.py login --account assistant`.
+Можно сохранить оба независимо; пароль/MFA вводятся в браузере, после проверки
+аккаунта нажмите Enter в терминале. `python run.py login --list` показывает
+наличие профилей без cookie. Выбранный аккаунт не заменяется другим при ошибке.
 
 Только локальная расшифровка:
 
 ```bash
-python run.py web --mn 12345678901 --minutes 60
+python run.py web --mn 12345678901 --account personal --minutes 60
 ```
 
 Расшифровка и черновик через Codex:

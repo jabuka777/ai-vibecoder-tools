@@ -28,6 +28,8 @@ import sys
 import threading
 import time
 import uuid
+from accounts import ACCOUNTS, state_parts
+from configure import validate_profile as validate_local_profile, ConfigurationError
 
 HERE = Path(__file__).absolute().parent
 PROFILE_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
@@ -49,7 +51,8 @@ KNOWN_PROBLEMS = frozenset({"disk_space_low", "audio_source_lost", "meeting_conn
     "audio_not_received", "audio_stream_stalled", "capture_hook_missing", "capture_document_changed",
     "capture_flush_unverified", "capture_flush_failed", "audio_upload_failed", "stopped_by_user",
     "transcript_incomplete", "stt_drain_failed", "no_transcript", "summary_failed",
-    "meeting_ended_before_join", "login_required_run_login_py", "RuntimeError", "TimeoutError",
+    "meeting_ended_before_join", "login_required_run_login_py", "zoom_automation_blocked",
+    "meeting_passcode_rejected", "meeting_passcode_required_use_local_configure", "RuntimeError", "TimeoutError",
     "Error", "OSError", "ValueError", "TypeError", "ImportError", "ModuleNotFoundError"})
 CHILD_ENV = frozenset({"PATH", "HOME", "USERPROFILE", "SYSTEMROOT", "WINDIR", "TEMP", "TMP",
     "TMPDIR", "LANG", "LC_ALL", "LD_LIBRARY_PATH", "XDG_CACHE_HOME", "HF_HOME", "HF_HUB_OFFLINE",
@@ -70,20 +73,10 @@ def _identifier(value, pattern):
 
 def validate_profile(value):
     """Validate the operator-created profile, without reflecting its contents."""
-    if not isinstance(value, dict) or set(value) - {"version", "meeting", "password", "name", "minutes"}:
-        raise BoundaryError("invalid_meeting_profile")
-    meeting, password = value.get("meeting"), value.get("password", "")
-    name, minutes = value.get("name", "AI meeting assistant"), value.get("minutes", 180)
-    version = value.get("version", 1)
-    if (type(version) is not int or version != 1
-            or not isinstance(meeting, str) or not re.fullmatch(r"[0-9]{9,11}", meeting)
-            or not isinstance(password, str) or len(password) > 4096
-            or any(c in password for c in "\r\n\x00")
-            or not isinstance(name, str) or not name.strip() or len(name) > 100
-            or any(ord(c) < 32 or ord(c) == 127 for c in name)
-            or type(minutes) not in (int, float) or not math.isfinite(minutes) or not 1 <= minutes <= 480):
-        raise BoundaryError("invalid_meeting_profile")
-    return {"version": 1, "meeting": meeting, "password": password, "name": name, "minutes": minutes}
+    try:
+        return validate_local_profile(value)
+    except ConfigurationError:
+        raise BoundaryError("invalid_meeting_profile") from None
 
 
 class PrivateStore:
@@ -311,6 +304,8 @@ class MeetingTools:
         result = {"ok": True, "session_id": session_id, "worker_state": "unresponsive" if stale else state,
                   "recording_state": "unknown", "recording_complete": False, "summary_state": "unavailable",
                   "incomplete": True, "llm": "none"}
+        if metadata.get('account') in ACCOUNTS:
+            result['account'] = metadata['account']
         exit_code = metadata.get("exit_code")
         if type(exit_code) is int:
             result["exit_code"] = exit_code
@@ -398,11 +393,15 @@ class MeetingTools:
             if confirm_recording is not True:
                 raise BoundaryError("recording_confirmation_required")
             profile = validate_profile(self.store.json(("meetings", profile_id + ".json")))
-            # An optional operator login is copied privately only upon this explicit start.
-            try:
-                login = self.store.read(("storage_state.json",), maximum=MAX_JSON)
-            except FileNotFoundError:
-                login = None
+            account = profile['account']
+            login_parts = state_parts(account)
+            login = None
+            if login_parts is not None:
+                try:
+                    login = self.store.read(login_parts, maximum=MAX_JSON)
+                except FileNotFoundError:
+                    if account != 'default':
+                        raise BoundaryError('account_login_required') from None
             with self.store.start_guard():
                 active = 0
                 for existing in self.store.names(("runs",), RUN_RE):
@@ -417,11 +416,12 @@ class MeetingTools:
                     raise BoundaryError("active_recording_limit")
                 session_id = uuid.uuid4().hex
                 run = ("runs", session_id)
-                self.store.write_json((*run, "worker.json"), {"state": "starting", "heartbeat": time.time()}, exclusive=True)
+                self.store.write_json((*run, "worker.json"), {"state": "starting", "heartbeat": time.time(),
+                                                            "account": account}, exclusive=True)
                 try:
                     self.store.write_json((*run, "meeting.json"), profile, exclusive=True)
                     if login is not None:
-                        self.store.write((*run, "storage_state.json"), login, exclusive=True)
+                        self.store.write((*run, *login_parts), login, exclusive=True)
                     from runtime import start_process
                     process = start_process([sys.executable, "-E", str(HERE / "mcp_server.py"),
                         "--worker", session_id, "--home", str(self.store.home)],
@@ -429,17 +429,19 @@ class MeetingTools:
                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                         cwd=str(HERE), survive_parent=True)
                 except Exception:
-                    self.store.write_json((*run, "worker.json"), {"state": "failed", "heartbeat": time.time(), "exit_code": 1})
-                    for name in ("meeting.json", "storage_state.json"):
+                    self.store.write_json((*run, "worker.json"), {"state": "failed", "heartbeat": time.time(),
+                                                                 "exit_code": 1, "account": account})
+                    for parts in [('meeting.json',)] + ([login_parts] if login_parts else []):
                         try:
-                            self.store.remove_generated((*run, name))
+                            self.store.remove_generated((*run, *parts))
                         except (OSError, BoundaryError):
                             pass
                     return {"ok": False, "error": "worker_start_failed", "session_id": session_id}
             with self.lock:
                 self.children[session_id] = process
             return {"ok": True, "session_id": session_id, "worker_state": "starting",
-                    "recording_complete": False, "llm": "none", "continues_after_client_disconnect": True}
+                    "recording_complete": False, "llm": "none", "account": account,
+                    "continues_after_client_disconnect": True}
         return _guard(operation)
 
     def stop_session(self, session_id):
@@ -459,6 +461,7 @@ def run_worker(home, session_id):
     _identifier(session_id, RUN_RE)
     run = ("runs", session_id)
     done, stop_sent = threading.Event(), threading.Event()
+    account = 'default'
     os.umask(0o077)
     os.environ["ZOOM_AGENT_HOME"] = str(store.home.joinpath(*run))
     if str(HERE) not in sys.path:
@@ -470,7 +473,7 @@ def run_worker(home, session_id):
             try:
                 if time.monotonic() - last_write > 2:
                     store.write_json((*run, "worker.json"), {"state": "stopping" if stop_sent.is_set() else "running",
-                                                             "heartbeat": time.time()})
+                                                             "heartbeat": time.time(), "account": account})
                     last_write = time.monotonic()
                 try:
                     store.read((*run, "stop.request"))
@@ -489,13 +492,14 @@ def run_worker(home, session_id):
     code = 1
     try:
         profile = validate_profile(store.json((*run, "meeting.json")))
+        account = profile['account']
         store.write((*run, ".meeting-password"), profile["password"].encode("utf-8"), exclusive=True)
         import webjoin
         watcher = threading.Thread(target=heartbeat, daemon=True)
         watcher.start()
         code = webjoin.main(["--mn", profile["meeting"], "--password-file",
             str(store.home.joinpath(*run, ".meeting-password")), "--name", profile["name"],
-            "--minutes", str(profile["minutes"]), "--llm", "none"])
+            "--minutes", str(profile["minutes"]), "--llm", "none", "--account", account])
     except (Exception, KeyboardInterrupt, SystemExit):
         code = 1
     finally:
@@ -504,9 +508,10 @@ def run_worker(home, session_id):
             watcher.join(timeout=2)
         try:
             store.write_json((*run, "worker.json"), {"state": "stopped" if code == 0 else "failed",
-                                                     "heartbeat": time.time(), "exit_code": code})
-            for name in ("meeting.json", ".meeting-password", "storage_state.json"):
-                store.remove_generated((*run, name))
+                                                     "heartbeat": time.time(), "exit_code": code, "account": account})
+            login_parts = state_parts(account)
+            for parts in [('meeting.json',), ('.meeting-password',)] + ([login_parts] if login_parts else []):
+                store.remove_generated((*run, *parts))
         except (OSError, BoundaryError):
             pass
     return code

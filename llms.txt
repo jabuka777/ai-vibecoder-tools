@@ -8,6 +8,7 @@ service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad
   Experimental local Zoom transcription (Chromium + faster-whisper) and draft meeting minutes with quotes,
   owners and deadlines. LLM is off by default; --llm claude, --llm codex or --llm deepseek sends text to that provider.
   Includes a guided setup skill, resumable installer, private meeting profiles and an optional local MCP server.
+  Supports separate personal and assistant browser login profiles, bound per meeting. A missing named login fails before joining; it does not fall back to a peer account or guest. Saved login presence is not proof of valid Zoom authorization or live recording.
   MCP read_result sends text to the AI client. MCP filesystem operations require POSIX; Windows uses the CLI.
 - Zoom Meeting Agent, Codex edition: https://github.com/jabuka777/jabuka-tools/tree/main/zoom-meeting-agent-codex
 - iCloud data export (in preparation): contacts, calendars, notes, reminders, iCloud Drive and photos
