@@ -68,6 +68,9 @@ def classify_page(page):
     body = page.locator('body').inner_text().lower()
     if any(text in body for text in ('meeting has been ended', 'this meeting has ended', 'конференция завершена')):
         return 'ended'
+    if any(text in body for text in ("automated bots aren't allowed to join this meeting",
+                                    'automated bots aren’t allowed to join this meeting')):
+        return 'automation_blocked'
     if any(text in body for text in ('sign in to join', 'sign in to zoom', 'войдите в zoom')):
         return 'login_required'
     controls = page.locator(JOINED_SELECTOR)
@@ -151,6 +154,8 @@ def main(argv=None, *, _stop):
                         break
                     if state == 'login_required':
                         monitor.fail('login_required_run_login_py')
+                    if state == 'automation_blocked':
+                        monitor.fail('zoom_automation_blocked')
                     if state == 'joined' and not joined:
                         joined = True
                         event('joined')

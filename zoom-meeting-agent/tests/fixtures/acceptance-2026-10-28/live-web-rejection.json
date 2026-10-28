@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-28",
+  "kind": "real_zoom_entry_attempt",
+  "source_revision_at_attempt": "0cb4e1fe63e9dd1846d502df7d48c44816ee5a64",
+  "mode": "web",
+  "llm": "none",
+  "private_diagnostics_used": true,
+  "diagnostic_changes": [
+    "wait for visible name field and allow preview to settle",
+    "save form metadata and screenshots with input fields masked"
+  ],
+  "observed_zoom_message": "Automated bots aren't allowed to join this meeting.",
+  "observed_runtime_reason": "login_required_run_login_py",
+  "corrected_reason": "zoom_automation_blocked",
+  "corrected_reason_validation": "local page-classification regressions only; no repeated live attempt after explicit refusal",
+  "recording_complete": false,
+  "join_verified": false,
+  "meeting_audio_verified": false,
+  "meeting_transcript_produced": false,
+  "accepted": false,
+  "limitation": "One meeting and one test environment. This establishes a rejected entry, not a universal account policy or successful live capture. Meeting identifiers, credentials, participant data and original screenshots are excluded."
+}

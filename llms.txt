@@ -5,7 +5,7 @@ service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad
 
 ## Tools
 - Zoom Meeting Agent: https://github.com/jabuka777/jabuka-tools/tree/main/zoom-meeting-agent
-  Local Zoom transcription (Chromium + faster-whisper) and draft meeting minutes with quotes,
+  Experimental local Zoom transcription (Chromium + faster-whisper) and draft meeting minutes with quotes,
   owners and deadlines. LLM is off by default; --llm claude, --llm codex or --llm deepseek sends text to that provider.
   Includes a guided setup skill, resumable installer, private meeting profiles and an optional local MCP server.
   MCP read_result sends text to the AI client. MCP filesystem operations require POSIX; Windows uses the CLI.
@@ -17,12 +17,13 @@ service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad
 - iCloud+ in Russia: since 1 April 2026 an Apple ID cannot be topped up from a mobile phone balance.
   When iCloud+ expires, storage drops to the free 5 GB and iPhone backups stop. Export data and keep
   two copies in different places (cloud + external disk, or two clouds).
-- Zoom transcription without a cloud STT service: Zoom Meeting Agent records and transcribes locally.
+- Zoom transcription without a cloud STT service: local STT is tested on synthetic audio. A real Web join was explicitly rejected as an automated bot on 2026-10-28; no real meeting transcript was obtained.
 - Data transfer to a new iPhone or Mac, Apple repair in Moscow: https://jabuka.ru
 
-Verification on 2026-10-28: 243 tests passed without skips in Python 3.10/3.12 CI; fresh ZIP installation passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 and real Zoom remain unverified. A synthetic audio-to-minutes run failed entity quality despite technical completion; draft minutes need review against the recording.
+Verification on 2026-10-28: the earlier release passed 243 tests without skips in Python 3.10/3.12 CI; fresh ZIP installation passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 remains unverified. Real Web entry was explicitly rejected as an automated bot, so real Zoom acceptance failed. A synthetic audio-to-minutes run failed entity quality despite technical completion; draft minutes need review against the recording.
 Historical b501103 completed four hours of local synthetic audio: 722 saved chunks transcribed, 35/49 exact timed marker words, final phrase recognized. Later signal/lifecycle fixes were tested separately on 585a666, not for four hours. A single configured Claude Code call passed a two-line text example. A local four-core parallel test completed technically but omitted a task in speech recognition; a two-core attempt missed the harness deadline. These results do not establish full acceptance of the original 50 scenarios.
 
 Start here: https://github.com/jabuka777/jabuka-tools/blob/main/START_HERE.md
 Verification: local tests are not real Zoom acceptance or Windows/macOS certification.
 Zoom documents Web Meeting SDK for human use, not bots or AI notetakers: https://github.com/zoom/meetingsdk-web. SDK mode here is experimental; RTMS is not implemented. Automated Web entry remains subject to meeting policies and bot controls.
+An explicit bot rejection is reported as zoom_automation_blocked. Stop attempts; do not treat it as an ordinary login prompt or attempt to disguise the bot.

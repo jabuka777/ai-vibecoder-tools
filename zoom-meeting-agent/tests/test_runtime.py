@@ -43,6 +43,15 @@ class Page:
 
 
 class PageClassificationTests(unittest.TestCase):
+    def test_bot_rejection_is_not_a_login_prompt_even_with_stale_controls(self):
+        for apostrophe in ("'", '’'):
+            text = (f'Automated bots aren{apostrophe}t allowed to join this meeting. '
+                    'If this was a mistake and you are a human, sign in to join the meeting.')
+            self.assertEqual(webjoin.classify_page(Page(text, 1, True)), 'automation_blocked')
+
+    def test_bot_name_or_normal_signin_does_not_imply_bot_rejection(self):
+        self.assertEqual(webjoin.classify_page(Page('Zoom Transcript Bot. Sign in to join')), 'login_required')
+
     def test_login_with_hidden_or_visible_stale_controls_is_not_joined(self):
         for visible in (False, True):
             self.assertEqual(webjoin.classify_page(Page("Sign in to join this meeting", 1, visible)), "login_required")
