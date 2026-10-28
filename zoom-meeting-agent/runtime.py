@@ -7,6 +7,7 @@ import shutil
 import signal
 from pathlib import Path
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -219,17 +220,22 @@ def _process_table():
     return table
 
 
-def start_process(command, **kwargs):
+def start_process(command, *, survive_parent=False, **kwargs):
     """Start an owned worker tree; only the returned handle authorizes stopping it.
 
-    Linux cleanup is integration-tested. POSIX uses a separate session; Windows
-    uses a process group and taskkill /T for a live parent (not a Windows Job).
+    Linux workers also receive a kernel parent-death guard unless deliberately
+    detached. POSIX uses a separate session; Windows uses a process group and
+    taskkill /T for a live parent (not a Windows Job).
     """
     if os.name == 'posix':
         kwargs['start_new_session'] = True
     elif os.name == 'nt':
         kwargs['creationflags'] = kwargs.get('creationflags', 0) | subprocess.CREATE_NEW_PROCESS_GROUP
-    process = subprocess.Popen(command, **kwargs)
+    launch_command = command
+    if sys.platform.startswith('linux') and not survive_parent:
+        launch_command = [sys.executable, str(HERE / 'child_process.py'),
+                          str(os.getpid()), *command]
+    process = subprocess.Popen(launch_command, **kwargs)
     identity = None
     try:
         if os.name == 'posix':

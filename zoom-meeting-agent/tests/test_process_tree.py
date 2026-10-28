@@ -14,6 +14,49 @@ import runtime
 
 @unittest.skipUnless(sys.platform.startswith('linux'), 'Linux process-tree integration evidence')
 class ProcessTreeTests(unittest.TestCase):
+    def parent_death_case(self, *, detached):
+        source = (
+            'import subprocess,sys,time; '
+            f'sys.path.insert(0,{str(runtime.HERE)!r}); import runtime; '
+            'p=runtime.start_process([sys.executable,"-c",'
+            '\'import time; print("ready",flush=True); time.sleep(60)\'], '
+            f'survive_parent={detached!r},stdout=subprocess.PIPE,text=True); '
+            'assert p.stdout.readline().strip()=="ready"; print(p.pid,flush=True); time.sleep(60)'
+        )
+        parent = subprocess.Popen([sys.executable, '-c', source],
+                                  stdout=subprocess.PIPE, text=True)
+        child = None
+        birth = None
+        try:
+            child = int(parent.stdout.readline())
+            birth = Path(f'/proc/{child}/stat').read_text().rsplit(')', 1)[1].split()[19]
+            parent.kill()
+            parent.wait(timeout=3)
+            if detached:
+                time.sleep(.15)
+                state = Path(f'/proc/{child}/stat').read_text().rsplit(')', 1)[1].split()[0]
+                self.assertNotEqual(state, 'Z')
+            else:
+                self.assert_stopped(child)
+        finally:
+            if parent.poll() is None:
+                parent.kill()
+                parent.wait(timeout=3)
+            parent.stdout.close()
+            if child is not None:
+                try:
+                    current = Path(f'/proc/{child}/stat').read_text().rsplit(')', 1)[1].split()
+                    if current[19] == birth and current[0] != 'Z':
+                        os.kill(child, signal.SIGKILL)
+                except (FileNotFoundError, ProcessLookupError):
+                    pass
+
+    def test_owned_child_dies_when_parent_is_killed(self):
+        self.parent_death_case(detached=False)
+
+    def test_explicitly_detached_worker_survives_parent_death(self):
+        self.parent_death_case(detached=True)
+
     def assert_stopped(self, pid):
         # Grandchildren are reaped by the OS's reaper, not this Python process.
         deadline = time.monotonic() + 3

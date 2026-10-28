@@ -427,7 +427,7 @@ class MeetingTools:
                         "--worker", session_id, "--home", str(self.store.home)],
                         env=_environment(self.store.home / "runs" / session_id),
                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                        cwd=str(HERE))
+                        cwd=str(HERE), survive_parent=True)
                 except Exception:
                     self.store.write_json((*run, "worker.json"), {"state": "failed", "heartbeat": time.time(), "exit_code": 1})
                     for name in ("meeting.json", "storage_state.json"):

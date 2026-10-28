@@ -93,6 +93,7 @@ class BoundaryTests(unittest.TestCase):
         self.assertNotIn(PROFILE["meeting"], serialized)
         self.assertNotIn(PROFILE["name"], serialized)
         options = spawn.call_args.kwargs
+        self.assertIs(options['survive_parent'], True)
         self.assertNotIn("OPENAI_API_KEY", options["env"])
         self.assertNotIn("TELEGRAM_TOKEN", options["env"])
         self.assertEqual(options["env"]["PLAYWRIGHT_BROWSERS_PATH"], "synthetic browser cache")
