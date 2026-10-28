@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -50,6 +51,17 @@ def main(argv=None):
     env = dict(os.environ, ZOOM_AGENT_HOME=str(home))
     try:
         os.chdir(core)
+        if os.name == 'nt':
+            # Windows execvpe does not preserve quoting for an argument with
+            # spaces. Popen builds the native command line from the argument list.
+            # The engine shares this console and receives Ctrl+C itself; let it
+            # finish its final audio/STT drain before the wrapper returns.
+            process = subprocess.Popen([interpreter, str(core / scripts[args.command]), *rest], env=env)
+            while True:
+                try:
+                    return process.wait()
+                except KeyboardInterrupt:
+                    continue
         # Replace the wrapper: the engine retains the terminal and receives
         # Ctrl+C directly, so its own final flush/drain is not cut short.
         os.execvpe(interpreter, [interpreter, str(core / scripts[args.command]), *rest], env)

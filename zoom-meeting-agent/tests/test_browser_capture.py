@@ -215,6 +215,19 @@ class BrowserCaptureTests(unittest.TestCase):
         self.assert_valid_audio(self.chunks())
         self.assertEqual(self.unexpected_requests, [])
 
+    def test_stop_immediately_after_encoder_restart_keeps_decodable_tail(self):
+        self.start_audio()
+        self.page.wait_for_function("""() => {
+          const recorder = window.__recorders.at(-1);
+          return recorder && recorder.state === 'recording' && recorder.__hadSource &&
+            performance.now() - recorder.__startedAt < 50;
+        }""")
+        before = len(self.chunks())
+        self.page.evaluate("async () => await window.__zbStopCapture()")
+        self.assertGreater(len(self.chunks()), before)
+        self.assert_valid_audio(self.chunks())
+        self.assertEqual(self.unexpected_requests, [])
+
 
 if __name__ == "__main__":
     unittest.main()

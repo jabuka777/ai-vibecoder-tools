@@ -5,9 +5,18 @@
   // not be mistaken for a successful flush of the previous recorder.
   window.__zbCaptureGeneration = crypto.randomUUID();
   const CHUNK_MS = 20000;
+  const MIN_FINAL_MS = 500;
   const mixCtx = new AudioContext();
   const mixDest = mixCtx.createMediaStreamDestination();
+  // Keep the destination rendering silent frames when a recording starts or
+  // all meeting inputs are disconnected. An input-free WebAudio graph can
+  // otherwise leave MediaRecorder with a header-only, undecodable WebM.
+  const silence = mixCtx.createConstantSource();
+  silence.offset.value = 0;
+  silence.connect(mixDest);
+  silence.start();
   const streams = new Set();
+  const inputs = new Set();
   const seen = new WeakSet();
   const pending = new Set();
   let stopped = false, captureFailed = false, recorder = null, timer = null;
@@ -19,10 +28,12 @@
   };
   const sourceActive = () => [...streams].some(s => s.getAudioTracks().some(t => t.readyState === 'live'));
   const addStream = stream => {
-    if (!stream || seen.has(stream) || !stream.getAudioTracks().length) return;
+    if (stopped || !stream || seen.has(stream) || !stream.getAudioTracks().length) return;
     seen.add(stream);
     try {
-      mixCtx.createMediaStreamSource(stream).connect(mixDest);
+      const input = mixCtx.createMediaStreamSource(stream);
+      input.connect(mixDest);
+      inputs.add(input);
       streams.add(stream);
       if (recorder) recorder.__hadSource = true;
       event('audio_source', {active: sourceActive()}).catch(() => {});
@@ -95,15 +106,27 @@
         if (!stopped) record();
       };
     });
+    current.__startedAt = performance.now();
     current.start();
     timer = setTimeout(() => current.stop(), CHUNK_MS);
   };
   window.__zbStopCapture = async () => {
     stopped = true;
     clearTimeout(timer);
-    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    // Stop taking meeting audio immediately. A newly created recorder still
+    // needs a few silent frames to finish a decodable WebM on macOS Chromium.
+    for (const input of inputs) {
+      try { input.disconnect(mixDest); } catch (_) {}
+    }
+    inputs.clear();
+    if (recorder && recorder.state !== 'inactive') {
+      const remaining = Math.max(0, MIN_FINAL_MS - (performance.now() - recorder.__startedAt));
+      if (remaining) await new Promise(resolve => setTimeout(resolve, remaining));
+      if (recorder.state !== 'inactive') recorder.stop();
+    }
     await stoppedChunk;
     await Promise.all([...pending]);
+    try { silence.stop(); silence.disconnect(); } catch (_) {}
     if (captureFailed) throw Error('One or more audio chunks failed to upload');
   };
   timer = setTimeout(record, 1000);
