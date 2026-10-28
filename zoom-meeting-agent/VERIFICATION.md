@@ -17,6 +17,17 @@ doctor проверяет также стили из HTML. Повтор 6.5.0 �
 выполнил 238 тестов за 40,953 с, с двумя явными пропусками официального MCP SDK
 в этом окружении. Прежний полный прогон без пропусков и GitHub CI описаны ниже.
 
+Затем [CI на `88f5c66`](https://github.com/jabuka777/jabuka-tools/actions/runs/40685250201)
+прошёл **238 тестов без пропусков** на Python 3.10 и 3.12.
+[Установка из ZIP](https://github.com/jabuka777/jabuka-tools/actions/runs/40685250219)
+также повторно прошла на трёх ОС. Теперь компонентных тестов 94: без пропусков
+на Ubuntu/macOS, 62 пройденных и 32 пропуска на Windows Server.
+[Версии, шаги и хеши нового прогона](tests/fixtures/acceptance-2026-10-28/portable-installation-sdk-fix.json).
+
+28.10 сверены [официальные параметры DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/):
+`deepseek-flash` и `thinking: disabled` соответствуют документации.
+Это сверка интерфейса; настоящий вызов с действующим ключом не выполнялся.
+
 В [180-секундной локальной записи](tests/fixtures/acceptance-2026-10-28/local-audio-to-minutes.json)
 настоящие Chromium, Whisper и Codex завершили весь pipeline. Из шести эталонных
 задач получены шесть записей, все шесть исполнителей совпали, но точные сроки

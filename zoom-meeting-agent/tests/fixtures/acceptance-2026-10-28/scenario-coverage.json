@@ -563,14 +563,15 @@
       "id": "N24",
       "title": "Чистая установка на целевых ОС",
       "status": "partial",
-      "observed": "Fresh ZIP install, empty caches, real browser/STT and offline resume pass Ubuntu 24, macOS 26.6.2 ARM64, Windows Server 2025.",
+      "observed": "Fresh ZIP install, empty caches, real browser/STT and offline resume pass Ubuntu 24, macOS 26.6.2 ARM64, Windows Server 2025. After the SDK asset fix, the same three-platform CI passed again: 94 component tests on Ubuntu/macOS; 62 executed and 32 skipped on Windows Server.",
       "remaining": "Windows 11, real Zoom on all OS and independent novice not tested. Windows MCP unsupported; 32 component tests skipped there.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_setup_environment.py",
         "zoom-meeting-agent/tests/test_doctor.py",
         "zoom-meeting-agent/tests/test_configuration.py",
         "zoom-meeting-agent/tests/test_skill_entry.py"
-      ]
+      ],
+      "follow_up_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394"
     },
     {
       "id": "N25",
@@ -582,7 +583,8 @@
         "zoom-meeting-agent/tests/test_setup_environment.py",
         "zoom-meeting-agent/tests/test_setup_sdk.py",
         "zoom-meeting-agent/tests/test_doctor.py"
-      ]
+      ],
+      "follow_up_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394"
     },
     {
       "id": "N26",
@@ -597,5 +599,6 @@
         "zoom-meeting-agent/tests/test_doctor.py"
       ]
     }
-  ]
+  ],
+  "additional_tested_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394"
 }

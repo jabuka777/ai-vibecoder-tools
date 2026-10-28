@@ -20,7 +20,7 @@ service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad
 - Zoom transcription without a cloud STT service: Zoom Meeting Agent records and transcribes locally.
 - Data transfer to a new iPhone or Mac, Apple repair in Moscow: https://jabuka.ru
 
-Verification on 2026-10-28: 237 local tests; fresh ZIP installation CI passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 and real Zoom remain unverified. Draft minutes need human review.
+Verification on 2026-10-28: 238 tests passed without skips in Python 3.10/3.12 CI; fresh ZIP installation passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 and real Zoom remain unverified. A synthetic audio-to-minutes run failed entity quality despite technical completion; draft minutes need review against the recording.
 
 Start here: https://github.com/jabuka777/jabuka-tools/blob/main/START_HERE.md
 Verification: local tests are not real Zoom acceptance or Windows/macOS certification.
