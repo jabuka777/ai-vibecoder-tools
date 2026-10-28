@@ -17,29 +17,51 @@ HERE = Path(__file__).resolve().parent
 JOINED_SELECTOR = 'button.footer__leave-btn, #wc-footer button[aria-label*="Leave"], #wc-footer button[aria-label*="Выйти"]'
 
 
+def dismiss_preview_prompt(page):
+    dismissed = False
+    for label in ('Continue without microphone and camera', 'Continue without microphone'):
+        button = page.get_by_role('button', name=label, exact=True)
+        if not button.count() or not button.first.is_visible():
+            # Current Zoom renders this action as text/link inside ReactModal.
+            button = page.locator('.ReactModal__Content').get_by_text(label, exact=True)
+        if button.count() and button.first.is_visible():
+            button.first.click(timeout=2000)
+            dismissed = True
+    return dismissed
+
+
 def prepare_preview(page, name, password, monitor):
     """Fill a visible guest form without clicking hidden/stale controls."""
+    from playwright.sync_api import TimeoutError as BrowserTimeoutError
+
+    dismiss_preview_prompt(page)
     passcode = page.locator('#input-for-pwd')
     if passcode.count() and passcode.first.is_visible():
         body = page.locator('body').inner_text().lower()
-        if any(text in body for text in ('wrong passcode', 'incorrect passcode',
+        if any(text in body for text in ('wrong passcode', 'incorrect passcode', 'incorrect password',
                                         'incorrect meeting passcode', 'неверный код доступа')):
             monitor.fail('meeting_passcode_rejected')
         if not password:
             monitor.fail('meeting_passcode_required_use_local_configure')
         passcode.first.fill(password)
-    for label in ('Continue without microphone and camera', 'Continue without microphone'):
-        button = page.get_by_role('button', name=label, exact=True)
-        if button.count() and button.first.is_visible():
-            button.first.click(timeout=2000)
+    dismiss_preview_prompt(page)
     field = page.locator('#input-for-name')
     if not field.count() or not field.first.is_visible():
         field = page.get_by_role('textbox', name='Your Name')
     if field.count() and field.first.is_visible():
         field.first.fill(name)
     button = page.locator('button.preview-join-button')
-    if button.count() and button.first.is_visible():
-        button.first.click(timeout=2000)
+    if button.count() and button.first.is_visible() and button.first.is_enabled():
+        try:
+            button.first.click(timeout=2000)
+        except BrowserTimeoutError:
+            # Zoom can open its media-permission prompt after the initial check.
+            # Dismiss only this known prompt and let the next loop verify state.
+            if dismiss_preview_prompt(page):
+                return
+            if not button.count() or not button.first.is_visible() or not button.first.is_enabled():
+                return
+            raise
 
 
 def classify_page(page):

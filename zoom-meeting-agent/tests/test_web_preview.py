@@ -60,12 +60,64 @@ class PreviewTests(unittest.TestCase):
         self.assertFalse(self.monitor.failed)
 
     def test_rejected_passcode_is_not_submitted_again(self):
-        self.page.locator('body').evaluate("el => el.append('Wrong passcode. Please try again.')")
-        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(
-                RuntimeError, 'meeting_passcode_rejected'):
-            prepare_preview(self.page, 'Synthetic assistant', 'synthetic-only', self.monitor)
+        for message in ('Wrong passcode. Please try again.', 'Incorrect Password'):
+            with self.subTest(message=message):
+                self.page.locator('body').evaluate('''(el,text)=>{
+                    document.querySelector('#join-error')?.remove();
+                    const error=document.createElement('div');error.id='join-error';
+                    error.textContent=text;el.append(error)}''', message)
+                with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(
+                        RuntimeError, 'meeting_passcode_rejected'):
+                    prepare_preview(self.page, 'Synthetic assistant', 'synthetic-only', self.monitor)
+                self.assertFalse(self.page.evaluate('!!window.submitted'))
+                self.assertEqual(self.page.locator('#input-for-pwd').input_value(), '')
+
+    def test_late_media_prompt_is_dismissed_before_retrying_join(self):
+        self.page.set_content('''<style>
+          .overlay {position:fixed;inset:0;background:white;z-index:100}
+          .moving {animation:move .25s linear}
+          @keyframes move {from {transform:translateX(100px)} to {transform:translateX(0)}}
+          </style><input id="input-for-name" oninput="showPrompt()">
+          <button class="preview-join-button" onclick="window.submitted=true">Join</button>
+          <div class="overlay ReactModal__Content" hidden><a href="#" onclick="event.preventDefault();this.parentNode.remove()">
+          Continue without microphone and camera</a></div>
+          <script>let shown=false;function showPrompt(){if(shown)return;shown=true;
+          document.querySelector('.preview-join-button').classList.add('moving');
+          setTimeout(()=>document.querySelector('.overlay').hidden=false,30);}</script>''')
+        prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
+        self.assertEqual(self.page.locator('.overlay').count(), 0)
+        if not self.page.evaluate('!!window.submitted'):
+            prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
+        self.assertTrue(self.page.evaluate('!!window.submitted'))
+        self.assertFalse(self.monitor.failed)
+
+    def test_existing_media_prompt_link_is_dismissed_without_requesting_devices(self):
+        self.page.set_content('''<input id="input-for-name">
+          <button class="preview-join-button" onclick="window.submitted=true">Join</button>
+          <div class="ReactModal__Content" style="position:fixed;inset:0;background:white">
+          <button onclick="window.devicesRequested=true">Use microphone and camera</button>
+          <a href="#" onclick="event.preventDefault();this.parentNode.remove()">Continue without microphone and camera</a></div>''')
+        prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
+        self.assertTrue(self.page.evaluate('!!window.submitted'))
+        self.assertFalse(self.page.evaluate('!!window.devicesRequested'))
+
+    def test_join_waits_for_async_preview_validation(self):
+        self.page.set_content('''<input id="input-for-name">
+          <button disabled class="preview-join-button" onclick="window.submitted=true">Join</button>''')
+        prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
         self.assertFalse(self.page.evaluate('!!window.submitted'))
-        self.assertEqual(self.page.locator('#input-for-pwd').input_value(), '')
+        self.page.locator('button.preview-join-button').evaluate('el=>el.disabled=false')
+        prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
+        self.assertTrue(self.page.evaluate('!!window.submitted'))
+
+    def test_unknown_overlay_is_not_dismissed_or_bypassed(self):
+        self.page.set_content('''<input id="input-for-name">
+          <button class="preview-join-button" onclick="window.submitted=true">Join</button>
+          <div style="position:fixed;inset:0;background:white;z-index:100">Unknown prompt</div>''')
+        from playwright.sync_api import TimeoutError
+        with self.assertRaises(TimeoutError):
+            prepare_preview(self.page, 'Synthetic assistant', '', self.monitor)
+        self.assertFalse(self.page.evaluate('!!window.submitted'))
 
 
 if __name__ == '__main__':
