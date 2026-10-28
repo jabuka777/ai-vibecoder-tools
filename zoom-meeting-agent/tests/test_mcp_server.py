@@ -79,7 +79,8 @@ class BoundaryTests(unittest.TestCase):
         self.profile()
         process = Mock(poll=Mock(return_value=None))
         with patch("runtime.start_process", return_value=process) as spawn, \
-                patch.dict(os.environ, {"OPENAI_API_KEY": "never-copy-this", "TELEGRAM_TOKEN": "never-copy-this"}):
+                patch.dict(os.environ, {"OPENAI_API_KEY": "never-copy-this", "TELEGRAM_TOKEN": "never-copy-this",
+                                       "PLAYWRIGHT_BROWSERS_PATH": "synthetic browser cache"}):
             first = self.manager.start_web("test", True)
             second = self.manager.start_web("test", True)
         self.assertTrue(first["ok"])
@@ -94,6 +95,7 @@ class BoundaryTests(unittest.TestCase):
         options = spawn.call_args.kwargs
         self.assertNotIn("OPENAI_API_KEY", options["env"])
         self.assertNotIn("TELEGRAM_TOKEN", options["env"])
+        self.assertEqual(options["env"]["PLAYWRIGHT_BROWSERS_PATH"], "synthetic browser cache")
         self.assertEqual(options["stdout"], bridge.subprocess.DEVNULL)
         self.assertEqual(options["stderr"], bridge.subprocess.DEVNULL)
         for parent in (self.home / "runs", self.home / "runs" / first["session_id"]):

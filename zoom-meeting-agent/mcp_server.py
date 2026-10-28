@@ -53,6 +53,7 @@ KNOWN_PROBLEMS = frozenset({"disk_space_low", "audio_source_lost", "meeting_conn
     "Error", "OSError", "ValueError", "TypeError", "ImportError", "ModuleNotFoundError"})
 CHILD_ENV = frozenset({"PATH", "HOME", "USERPROFILE", "SYSTEMROOT", "WINDIR", "TEMP", "TMP",
     "TMPDIR", "LANG", "LC_ALL", "LD_LIBRARY_PATH", "XDG_CACHE_HOME", "HF_HOME", "HF_HUB_OFFLINE",
+    "PLAYWRIGHT_BROWSERS_PATH",
     "TRANSFORMERS_OFFLINE", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
     "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CUDA_VISIBLE_DEVICES"})
 
