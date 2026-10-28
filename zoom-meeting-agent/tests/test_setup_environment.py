@@ -206,7 +206,8 @@ class SetupTests(unittest.TestCase):
 
     def test_optional_actions_need_existing_venv(self):
         for kwargs in ({'download_model': True}, {'install_mcp': True}):
-            with self.subTest(kwargs=kwargs), patch.object(setup, 'command') as command:
+            with self.subTest(kwargs=kwargs), patch.object(setup, 'command') as command, \
+                    patch.object(setup, 'mcp_supported', return_value=True):
                 with self.assertRaisesRegex(setup.SetupError, 'venv_missing'):
                     setup.install(self.root / 'missing', **kwargs)
                 command.assert_not_called()
