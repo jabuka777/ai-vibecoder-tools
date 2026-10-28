@@ -1,6 +1,6 @@
 {
   "sha256": {
-    "README.md": "aea36c01c2ad3d3668d815d1862d2ec96b8b8464d7ddb84dcc47879669897a38",
+    "README.md": "3377b3050b5e55f81e14cd3d09da41e57382e923f618615b585898e6e97f8824",
     "beam-comparison.json": "5d8566c1356174f2abc4c01235a969dfd0df119095c7208252b5f3756e4d4536",
     "browser-failures.json": "8befa38544e69bc09f42ca2e6e93c81300be984cbe12da4fc1974230dccea122",
     "decoder-timeout.json": "ba5578f9c4b75971672897a43cd95c83a4fd12adaa85dda5817dda9b5985af74",
@@ -28,12 +28,13 @@
     "portable-installation-sdk-fix.json": "336fbc06a09e533ee3444e15106edee93e9424cfaadf29aa3f23f6c908a0f8bb",
     "portable-installation.json": "9dfca45780b63c4cbbe6f37041fc8db208dfc1fd8d936d12c68ea5c6ea063dfa",
     "replies-and-canary.json": "895352a69bcb2439e357e542934e809d5c01608d3a8bed3c3e8b3be65bdce8cb",
-    "scenario-coverage.json": "16ff60ca91391752861bd01f2c659e544b31c1bd50930495d69b71f39d14a94b",
+    "scenario-coverage.json": "2449c4fa63e1aa470e61ada590ccb14db8d650cbb33f06bb5d1e133ad32d008f",
     "sdk-assets-after.json": "f6c52bdb5bb36314cb40810ed4f97d101d3b8592ff705f640cc2c5e1bd924116",
     "sdk-bootstrap-after.json": "0eb59eb43246fb08fe9337d9e69a80daa2d5cf093c7690b3f41694087e6eca2f",
     "sdk-bootstrap-before.json": "8670cb2b75ef857f15b578313e481e672cdbd112c8e39f97f3b040912fc9dba0",
     "sdk-upgrade-rollback.json": "4c2003ae2cc56648f6348326f87a665745732cf395510a1547dc7eb6ee3fa69c",
     "source-manifest.json": "8e3744a6efe247389515a0311ec09ed46ec643cedfeaac8816db5c65337cebd8",
-    "stt-30min.json": "c0c4e8142e47ce804ccb8c49a76211231147fcbe2cf26483bf15a2060a9c1da0"
+    "stt-30min.json": "c0c4e8142e47ce804ccb8c49a76211231147fcbe2cf26483bf15a2060a9c1da0",
+    "whisper-recovery-and-drain.json": "a2e2e9b0475bd5211a257deb20ecc8070369619cf43d493fd5e3410ab2d03873"
   }
 }

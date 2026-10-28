@@ -1,0 +1,78 @@
+{
+  "source_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55",
+  "scope": "Actual ffmpeg and cached small CPU int8 inference; fault injection only at persistence/crash and recording-boundary state. No Zoom or cloud model.",
+  "cpu_affinity": [
+    2,
+    3
+  ],
+  "cases": {
+    "N10": {
+      "worker_exit_code": 1,
+      "records": 2,
+      "quarantined": 1,
+      "health": {
+        "state": "stopped",
+        "processed_count": 2,
+        "error_count": 1,
+        "pending_count": 0
+      },
+      "following_text": "Контролная отметка 5. Проект Бета. Согласовано. Не наподготовит презентацию до 9 ноября. Контрольная отметка 6. Проект Бета. Согласовано. Олег отправит приглашение до 10 ноября.",
+      "passed": true
+    },
+    "F23": {
+      "crash_exit_code": 77,
+      "crash_point": {
+        "after_transcript": true,
+        "done_exists": true,
+        "epoch": 1793195210.3286467
+      },
+      "recovery_exit_code": 0,
+      "repeat_exit_code": 0,
+      "inference_calls": [
+        1,
+        2,
+        2
+      ],
+      "records": 2,
+      "first_record_unchanged": true,
+      "first_text_occurrences": 1,
+      "passed": true,
+      "crash_point_note": "The empty done file can already exist before the first chunk. The injected crash occurs immediately after atomic transcript replacement, before recover_transcript can commit the new done entries. File presence alone is not the crash criterion."
+    },
+    "N15": {
+      "queued_audio_seconds": 300,
+      "chunks": 15,
+      "finish_seconds": 113.577,
+      "records": 15,
+      "health": {
+        "state": "stopped",
+        "processed_count": 15,
+        "error_count": 0,
+        "pending_count": 0
+      },
+      "status": {
+        "state": "complete",
+        "reason": null,
+        "ts": 1793195338.611868,
+        "incomplete": false,
+        "recording_complete": true,
+        "summary_state": "complete",
+        "problems": []
+      },
+      "summary_boundary_checks": [
+        {
+          "records": 15,
+          "pending_count": 0,
+          "recording_complete": true,
+          "epoch": 1793195338.6118577
+        }
+      ],
+      "summary_scope": "Callback records ordering only; final LLM replaced, inference is actual Whisper. Joined/audio-received state is injected after prepared recording files, not a live browser.",
+      "passed": true,
+      "finish_exit_code": 0
+    }
+  },
+  "passed": true,
+  "assessment_note": "The original harness treated runtime.finish success exit code 0 as a false boolean. The predicate is corrected from saved exit code, health, records and boundary checks; product code and recorded run were not changed or rerun.",
+  "original_report_sha256": "0d565428400371f0b3b39d11e7ab123ef9034270475a9d38919d0ba0973381b0"
+}

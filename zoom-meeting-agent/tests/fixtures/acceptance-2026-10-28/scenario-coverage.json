@@ -12,8 +12,8 @@
   },
   "counts": {
     "not_executed": 2,
-    "partial": 37,
-    "passed": 7,
+    "partial": 36,
+    "passed": 8,
     "not_applicable": 1,
     "running": 3
   },
@@ -270,13 +270,16 @@
     {
       "id": "F23",
       "title": "Восстановление STT без дублей",
-      "status": "partial",
-      "observed": "Persistence/restart/crash-window regression tests pass with injected inference.",
-      "remaining": "Full recording crash/restart using actual Whisper.",
+      "status": "passed",
+      "observed": "Actual Whisper worker exits 77 immediately after transcript replacement, before committing the new done entries. Restart handles a newly added chunk, retains the first record unchanged and saves its text exactly once. Inference-call totals are 1 -> 2 -> 2 across crash, recovery and an empty repeat.",
+      "remaining": "Declared scope is the shared local STT component with actual inference and injected persistence crash; no Zoom acceptance or recovery after arbitrary hardware corruption is claimed.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_stt.py",
         "zoom-meeting-agent/tests/test_transcript_tail.py"
-      ]
+      ],
+      "local_procedure_passed": true,
+      "evidence": "whisper-recovery-and-drain.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "F24",
@@ -402,12 +405,15 @@
       "id": "N10",
       "title": "Изоляция плохого аудиофрагмента",
       "status": "partial",
-      "observed": "Actual ffmpeg rejects a damaged WebM and processes the next valid chunk; inference is injected in this regression.",
-      "remaining": "Same malformed-queue sequence with real Whisper and full parent pipeline.",
+      "observed": "Actual ffmpeg and actual cached Whisper process good/corrupt/good WebM: two records, one quarantined file, error_count=1, pending_count=0 and worker exit 1. The following valid fragment is transcribed. Content accuracy is not claimed.",
+      "remaining": "Actual parent reporting in full Web/SDK Zoom recordings and independent speech-quality acceptance.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_stt.py",
         "zoom-meeting-agent/tests/test_runtime.py"
-      ]
+      ],
+      "local_procedure_passed": true,
+      "evidence": "whisper-recovery-and-drain.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "N11",
@@ -460,13 +466,16 @@
       "id": "N15",
       "title": "Завершение с очередью STT",
       "status": "partial",
-      "observed": "Interrupted valid chunk is retained for final drain; incomplete drain prevents summary.",
-      "remaining": "Five-minute real Whisper backlog at meeting end.",
+      "observed": "Actual finalization processes a prepared 300-second backlog of 15 actual WebM files in 113.577s. All 15 records saved, no quarantine or pending chunks, recording_complete=true. Summary boundary is reached only after drain.",
+      "remaining": "Joined/audio-received flags and final summary callback are injected; no real browser-end event, actual LLM generation or Zoom meeting in this scenario.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_runtime.py",
         "zoom-meeting-agent/tests/test_stt.py",
         "zoom-meeting-agent/tests/test_process_tree.py"
-      ]
+      ],
+      "local_procedure_passed": true,
+      "evidence": "whisper-recovery-and-drain.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "N16",
