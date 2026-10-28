@@ -1,0 +1,100 @@
+{
+  "mode": "live_results_contract_check",
+  "backend": "codex",
+  "model": "gpt-6-luna",
+  "fixture_set_sha256": "d93328f9cd5f8ae323db439517fef9e08bbba5e3c3b30115e1169bfdcab287b2",
+  "extraction_instructions_sha256": "3c491710c85eafc57937539a2ce8aeed692f72802bd707494e305ebbba65f834",
+  "passed": 10,
+  "total": 10,
+  "total_calls": 20,
+  "cached_chunks": 0,
+  "call_errors": 0,
+  "case_errors": 0,
+  "elapsed_seconds": 86.088,
+  "call_count_definition": "Attempts to invoke llm.call; not independently verified provider request count.",
+  "cases": [
+    {
+      "case_id": "d01_six_tasks",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 6.856
+    },
+    {
+      "case_id": "d01_same_action",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 3.725
+    },
+    {
+      "case_id": "d02_long_meeting",
+      "passed": true,
+      "failures": [],
+      "calls": 11,
+      "cached_chunks": 0,
+      "elapsed_seconds": 41.639
+    },
+    {
+      "case_id": "d04_accepted_correction",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 7.274
+    },
+    {
+      "case_id": "d04_rejected_correction",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 6.985
+    },
+    {
+      "case_id": "d04_unknown_owner",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 3.591
+    },
+    {
+      "case_id": "d04_cancellation",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 4.25
+    },
+    {
+      "case_id": "d05_attack_and_task",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 3.766
+    },
+    {
+      "case_id": "d05_no_decisions",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 3.058
+    },
+    {
+      "case_id": "d04_unaccepted_proposal",
+      "passed": true,
+      "failures": [],
+      "calls": 1,
+      "cached_chunks": 0,
+      "elapsed_seconds": 4.933
+    }
+  ],
+  "results_path": "model-results-4.jsonl",
+  "metrics_path": "model-metrics-4.jsonl",
+  "limitation": "Checks structured fields, topic keywords and exact evidence, not free-text semantic equivalence. Corrections remain separate draft ledger entries. Extra grounded policy decisions or alternative fact decompositions can fail this strict ledger contract; manually inspect mismatches. No LLM quality claim without actual model results."
+}

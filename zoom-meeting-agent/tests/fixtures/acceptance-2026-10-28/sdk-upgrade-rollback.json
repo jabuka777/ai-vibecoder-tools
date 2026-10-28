@@ -1,0 +1,48 @@
+{
+  "steps": [
+    {
+      "version": "6.5.0",
+      "passed": true,
+      "receipt": {
+        "version": "6.5.0",
+        "package": "@zoom/meetingsdk",
+        "archive_sha256": "af84193833e557e341ab1d41b126d6e7d32cf803429be2a35706087e454680e8",
+        "script_sha256": "1b9da88128f8c4c63bdece01313deaa806a5e99ed4c93f90d50f0a8f3425601a",
+        "installed_at": "2026-10-28T11:01:29.403983+00:00",
+        "live_zoom_verified": false
+      },
+      "backup_preserved": true,
+      "seconds": 5.319
+    },
+    {
+      "version": "6.10.0",
+      "passed": true,
+      "receipt": {
+        "version": "6.10.0",
+        "package": "@zoom/meetingsdk",
+        "archive_sha256": "b2c3d1ded672afba9a2a73b5f1a855c14d9ec0ec46f953a32f9fe4fe409fb2ac",
+        "script_sha256": "3ba5526e3e96b7cd3e1ecb6b2297d4622f1b11740a485a6cfdaa9830fc892cb1",
+        "installed_at": "2026-10-28T11:01:34.573423+00:00",
+        "live_zoom_verified": false
+      },
+      "backup_preserved": true,
+      "seconds": 5.187
+    },
+    {
+      "version": "6.5.0",
+      "passed": true,
+      "receipt": {
+        "version": "6.5.0",
+        "package": "@zoom/meetingsdk",
+        "archive_sha256": "af84193833e557e341ab1d41b126d6e7d32cf803429be2a35706087e454680e8",
+        "script_sha256": "1b9da88128f8c4c63bdece01313deaa806a5e99ed4c93f90d50f0a8f3425601a",
+        "installed_at": "2026-10-28T11:01:35.788940+00:00",
+        "live_zoom_verified": false
+      },
+      "backup_preserved": true,
+      "seconds": 1.169
+    }
+  ],
+  "real_zoom_verified": false,
+  "versions_confirmed_in_registry": true
+}

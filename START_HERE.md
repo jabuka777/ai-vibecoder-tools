@@ -63,7 +63,7 @@ python skills/zoom-meeting-agent/scripts/zoom.py configure run demo
 
 Дополнительно доступен MCP-сервер. Он запускает и останавливает запись, показывает
 состояние и читает результат. [Инструкция подключения](skills/zoom-meeting-agent/references/clients.md).
-MCP проверен на Linux и требует POSIX-файловую границу; для Windows используйте
+MCP проверен в CI на Linux/macOS и требует POSIX-файловую границу; для Windows используйте
 скилл с CLI. Сам запуск MCP к Zoom не подключается. Чтение расшифровки через MCP
 передаёт её вашему AI-клиенту, даже при выключенной встроенной LLM записи.
 
@@ -74,7 +74,8 @@ MCP проверен на Linux и требует POSIX-файловую гра�
 Протокол готов как черновик при `status: complete` в `minutes-status.json`.
 Проверьте имена, задачи, сроки и отмены по цитатам и исходной записи.
 
-Новая версия проверена локально на Linux. Настоящая Zoom-встреча, Windows/macOS,
-длительная нагрузка и независимый первый запуск новичком ещё требуют проверки.
+Установка из ZIP проверена в CI на Ubuntu, macOS ARM64 и Windows Server 2025.
+Настоящая Zoom-встреча, Windows 11, длительная нагрузка и независимый первый
+запуск новичком ещё требуют проверки.
 [Доказательства и ограничения](zoom-meeting-agent/VERIFICATION.md),
 [помощь при ошибках](skills/zoom-meeting-agent/references/troubleshooting.md).

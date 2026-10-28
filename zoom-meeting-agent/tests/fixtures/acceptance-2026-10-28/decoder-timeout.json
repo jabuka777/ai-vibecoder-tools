@@ -1,0 +1,15 @@
+{
+  "id": "N11",
+  "elapsed_seconds": 121.115,
+  "worker_still_running": false,
+  "transcript_exists": true,
+  "following_chunk_processed": true,
+  "product_timeout_seconds": 120,
+  "proposed_book_timeout_seconds": 30,
+  "product_source_sha256": "fa1c626c19984c899ea6c21a4793c2983c566b3485493a052795b9d962aa2017",
+  "methodology": "Real product stt.run_session/load and real hanging decoder process plus descendant. Only the speech model is a lightweight injected fixture.",
+  "cleanup_process_states": {
+    "decoder": "gone",
+    "descendant": "gone"
+  }
+}

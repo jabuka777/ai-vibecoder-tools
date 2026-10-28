@@ -1,0 +1,13 @@
+{
+  "N14": {
+    "cases": 16,
+    "passed": 16,
+    "failures": []
+  },
+  "scope": "Actual product main/finally/finish, real Chromium when stage allows, actual idle agent, STT/ffmpeg process fixtures. No Zoom, no Whisper, no cloud.",
+  "sources": {
+    "bot.py": "475cffc93317e618123e467ca941ac6ad84e0b02f89ae16baa80a6d37e79aa9c",
+    "webjoin.py": "917136c3c7738b199e319f352aa7bca39dec98a7b7eb23ffef4758821e4ce980",
+    "runtime.py": "e5dfa0de8b4441f26c7b3cc83cbd983ea73425863f34a2e0dd6eb9e9d3e45c80"
+  }
+}

@@ -10,7 +10,8 @@
 
 ## Установка
 
-Нужны Python 3.10+, ffmpeg и Node.js. Windows/macOS вручную не проверены; локальные проверки выполнены на Linux.
+Нужны Python 3.10+, ffmpeg и Node.js. Установка из ZIP проверена в CI на Ubuntu,
+macOS ARM64 и Windows Server 2025. Живой Zoom и Windows 11 ещё не проверены.
 
 ```bash
 git clone https://github.com/jabuka777/jabuka-tools
@@ -18,7 +19,7 @@ cd jabuka-tools/zoom-meeting-agent-codex
 python -m venv .venv
 ```
 
-Активировать: `source .venv/bin/activate` на Linux/macOS или `.venv\Scripts\Activate.ps1` в Windows PowerShell.
+Активировать: `source.venv/bin/activate` на Linux/macOS или `.venv\Scripts\Activate.ps1` в Windows PowerShell.
 
 ```bash
 python -m pip install -r requirements.txt
@@ -31,7 +32,7 @@ python run.py doctor --backend codex
 
 Используется уже настроенный вход Codex. Копировать токены в проект не нужно. Версия CLI зафиксирована, потому что её набор инструментов проверен отдельным тестом. При другом CLI запуск LLM остановится до передачи речи.
 
-CLI может добавить к тексту встречи глобальные инструкции и каталог навыков вашей установки. Инструменты исполнения отключены, но отсутствие служебного контекста в запросе не гарантируется. Подробности и результаты проверки — в [VERIFICATION.md](../zoom-meeting-agent/VERIFICATION.md).
+CLI может добавить к тексту встречи глобальные инструкции и каталог навыков вашей установки. Инструменты исполнения отключены, но отсутствие служебного контекста в запросе не гарантируется. Подробности и результаты проверки, в [VERIFICATION.md](../zoom-meeting-agent/VERIFICATION.md).
 
 ## Попробовать
 

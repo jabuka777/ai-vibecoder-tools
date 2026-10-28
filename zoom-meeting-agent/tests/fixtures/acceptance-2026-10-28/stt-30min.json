@@ -1,0 +1,38 @@
+{
+  "source_revision": "11c0343095a9f0a82f7f7e43522df1449360c421",
+  "dataset": "D03",
+  "synthetic_tts": true,
+  "speech_quality_limitation": "Reference is generated TTS, not a human-verified multi-speaker audio corpus. WER not evidence of human speech quality.",
+  "duration_seconds": 1800,
+  "wall_seconds": 917.968,
+  "chunk_seconds": 10,
+  "condition_wer": {
+    "clean": {
+      "edits": 169,
+      "reference_words": 1435,
+      "wer": 0.11777003484320557
+    },
+    "noise": {
+      "edits": 54,
+      "reference_words": 380,
+      "wer": 0.14210526315789473
+    }
+  },
+  "silence_nonempty_outputs": [],
+  "whisper": "small, CPU int8, two threads, cached model, local_files_only",
+  "worker_exit_code": 0,
+  "chunks_expected": 180,
+  "chunks_processed": 180,
+  "p95_stt_seconds_per_chunk": 6.4626,
+  "mean_stt_seconds": 4.745427777777778,
+  "stt_realtime_factor": 0.4745427777777778,
+  "wer_eligible_chunks": 165,
+  "synthetic_reference_wer": {
+    "edits": 223,
+    "reference_words": 1815,
+    "wer": 0.12286501377410468
+  },
+  "quality_reference_scope": "Only successfully processed chunks without overlapping sources; missing chunks are reported separately.",
+  "realtime_pacing": false,
+  "zoom_tested": false
+}

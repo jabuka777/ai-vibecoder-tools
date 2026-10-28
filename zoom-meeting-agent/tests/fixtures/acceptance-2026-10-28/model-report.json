@@ -1,0 +1,44 @@
+{
+  "repeats": 5,
+  "total": 50,
+  "passed": 50,
+  "backend": "codex",
+  "model": "gpt-6-luna",
+  "elapsed_seconds": 467.621,
+  "source_revision": "5933ca99fca763c7c96a2310ffb13e96f94cff5e",
+  "fixture_sha256": "4719be75ae5b35cc4742170cc3e1274e85fcf11fa4510deeade1e617e06d5397",
+  "planned_model_call_ceiling": 100,
+  "limitation": "Structured-field/evidence/topic checks, not a full semantic oracle; labels are synthetic and not independently human-validated.",
+  "reports": [
+    {
+      "repeat": 1,
+      "passed": 10,
+      "total": 10,
+      "calls": 20
+    },
+    {
+      "repeat": 2,
+      "passed": 10,
+      "total": 10,
+      "calls": 20
+    },
+    {
+      "repeat": 3,
+      "passed": 10,
+      "total": 10,
+      "calls": 20
+    },
+    {
+      "repeat": 4,
+      "passed": 10,
+      "total": 10,
+      "calls": 20
+    },
+    {
+      "repeat": 5,
+      "passed": 10,
+      "total": 10,
+      "calls": 20
+    }
+  ]
+}

@@ -1,0 +1,368 @@
+{
+  "source_sha256": "d6ef82bcc00a57f8a5e452c7cdfaf7dce453cd3b50f34652080bd1450c44d402",
+  "results": {
+    "N01": {
+      "checks": 16,
+      "passed": 16,
+      "failures": []
+    },
+    "N02": {
+      "checks": 8,
+      "passed": 8,
+      "failures": []
+    },
+    "N03": {
+      "checks": 8,
+      "passed": 8,
+      "failures": []
+    },
+    "N04": {
+      "checks": 14,
+      "passed": 14,
+      "failures": []
+    },
+    "N07": {
+      "checks": 8,
+      "passed": 8,
+      "failures": []
+    },
+    "N09": {
+      "checks": 2,
+      "passed": 2,
+      "failures": []
+    }
+  },
+  "checks": {
+    "N01": [
+      {
+        "label": "bound only to loopback",
+        "passed": true
+      },
+      {
+        "label": "no token /say",
+        "passed": true,
+        "status": 401
+      },
+      {
+        "label": "untrusted context /say",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Origin": "https://untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /say",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Host": "untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /say",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Sec-Fetch-Site": "cross-site"
+        }
+      },
+      {
+        "label": "no token /outbox",
+        "passed": true,
+        "status": 401
+      },
+      {
+        "label": "untrusted context /outbox",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Origin": "https://untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /outbox",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Host": "untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /outbox",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Sec-Fetch-Site": "cross-site"
+        }
+      },
+      {
+        "label": "no token /left",
+        "passed": true,
+        "status": 401
+      },
+      {
+        "label": "untrusted context /left",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Origin": "https://untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /left",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Host": "untrusted.invalid"
+        }
+      },
+      {
+        "label": "untrusted context /left",
+        "passed": true,
+        "status": 403,
+        "headers": {
+          "Sec-Fetch-Site": "cross-site"
+        }
+      },
+      {
+        "label": "authorized enqueue",
+        "passed": true,
+        "status": 200
+      },
+      {
+        "label": "authorized queue read",
+        "passed": true,
+        "status": 200
+      },
+      {
+        "label": "authorized stop accepted",
+        "passed": true,
+        "status": 200
+      }
+    ],
+    "N02": [
+      {
+        "label": "invalid timestamp ../../sentinel",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "invalid absolute timestamp pointing outside the session",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "invalid timestamp letters",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "invalid timestamp -1",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "invalid timestamp 999999999999999999999",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "valid chunk stored only inside session",
+        "passed": true
+      },
+      {
+        "label": "sentinel unchanged",
+        "passed": true,
+        "before_sha256": "5a0f96df6b5230dee5231d2cdca98901310afb25f1bede7b4570c737064b9224",
+        "after_sha256": "5a0f96df6b5230dee5231d2cdca98901310afb25f1bede7b4570c737064b9224"
+      },
+      {
+        "label": "exact chunk inventory",
+        "passed": true
+      }
+    ],
+    "N03": [
+      {
+        "label": "signature mn=12345678901 auth=True",
+        "passed": true,
+        "status": 200
+      },
+      {
+        "label": "signed JWT claims and HMAC",
+        "passed": true,
+        "claims": {
+          "appKey": "SYNTHETIC_APP_ID",
+          "sdkKey": "SYNTHETIC_APP_ID",
+          "mn": "12345678901",
+          "role": 0,
+          "iat": 1793117357,
+          "exp": 1793124557,
+          "tokenExp": 1793124557
+        }
+      },
+      {
+        "label": "secret absent from JWT and response",
+        "passed": true
+      },
+      {
+        "label": "signature mn=12345678902 auth=True",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "signature  auth=True",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "signature mn= auth=True",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "signature mn=abc auth=True",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "signature mn=12345678901 auth=False",
+        "passed": true,
+        "status": 401
+      }
+    ],
+    "N04": [
+      {
+        "label": "bad json",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "null",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "numeric message",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "wrong chat content",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "wrong event root",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "unknown JSON field rejected (strict book interpretation)",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "unknown field rejected without mutation /outbox/claim",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "unknown field rejected without mutation /outbox/ack",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "unknown field rejected without mutation /event",
+        "passed": true,
+        "status": 400
+      },
+      {
+        "label": "json over 64 KiB",
+        "passed": true,
+        "status": 413
+      },
+      {
+        "label": "audio over product 4 MiB",
+        "passed": true,
+        "status": 413
+      },
+      {
+        "label": "slow body expires",
+        "passed": true,
+        "elapsed": 10.006573838181794,
+        "response": "HTTP/1.0 408 Request Timeout\r\nServer: BaseHTTP/0.6 Python/3.12.3\r\nDate: Tue, 27 Oct 2026 16:09:58 GMT\r\nContent-Type: application/json\r\nContent-Length: 2\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nConnection: close\r\n\r\n{}"
+      },
+      {
+        "label": "valid request after failures",
+        "passed": true,
+        "status": 200
+      },
+      {
+        "label": "bounded resource growth",
+        "passed": true,
+        "rss_before": 22020096,
+        "rss_after": 22065152,
+        "disk_bytes_before": 446,
+        "disk_bytes_after": 594,
+        "audio_limit": 4194304,
+        "json_limit": 65536
+      }
+    ],
+    "N07": [
+      {
+        "label": "event accepted joined",
+        "passed": true
+      },
+      {
+        "label": "event accepted join_error",
+        "passed": true
+      },
+      {
+        "label": "event accepted init_error",
+        "passed": true
+      },
+      {
+        "label": "event accepted unmute_error",
+        "passed": true
+      },
+      {
+        "label": "SDK error canaries removed",
+        "passed": true,
+        "event_sha256": "4c9179210c3b4129fcc1a1f655c659e2bfea4c1ba4463da2e644c48af06a232f"
+      },
+      {
+        "label": "no canary in launched command line",
+        "passed": true
+      },
+      {
+        "label": "no canary in stdout.log",
+        "passed": true,
+        "sha256": "2d3b722fdfcb1da9cde9802b3c5cb3b4da0b713a7a5ddb367c3366fd6a6ea1db"
+      },
+      {
+        "label": "no canary in stderr.log",
+        "passed": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "N09": [
+      {
+        "label": "private session ancestors and control/outbox",
+        "passed": true,
+        "permissions": {
+          "sessions": "0o700",
+          "sessions/2026-10-27_190946-12345678901-sdk-4a4db096": "0o700",
+          "sessions/2026-10-27_190946-12345678901-sdk-4a4db096/chunks": "0o700",
+          "sessions/2026-10-27_190946-12345678901-sdk-4a4db096/control.json": "0o600",
+          "sessions/2026-10-27_190946-12345678901-sdk-4a4db096/outbox.json": "0o600"
+        }
+      },
+      {
+        "label": "current uid owns artifacts",
+        "passed": true
+      }
+    ]
+  },
+  "scope": "Actual isolated loopback HTTP with synthetic credentials. N09 covers POSIX modes only; not a second OS user or Windows ACL."
+}

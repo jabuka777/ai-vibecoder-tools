@@ -1,0 +1,18 @@
+{
+  "F22": {
+    "checks": 6,
+    "passed": 6,
+    "failures": []
+  },
+  "N12": {
+    "checks": 37,
+    "passed": 37,
+    "failures": []
+  },
+  "N07": {
+    "checks": 1,
+    "passed": 1,
+    "failures": []
+  },
+  "scope": "Real CLI processes and loopback queues; injected provider failures, not live Claude or DeepSeek. Includes ASCII stdout recovery."
+}
