@@ -28,7 +28,7 @@ import sys
 import threading
 import time
 import uuid
-from accounts import ACCOUNTS, state_parts
+from accounts import ACCOUNTS, MAX_STATE, state_parts
 from configure import validate_profile as validate_local_profile, ConfigurationError
 
 HERE = Path(__file__).absolute().parent
@@ -160,8 +160,8 @@ class PrivateStore:
             raise BoundaryError("invalid_metadata")
         return result
 
-    def write(self, parts, content, exclusive=False):
-        if not isinstance(content, bytes) or len(content) > MAX_JSON:
+    def write(self, parts, content, exclusive=False, *, maximum=MAX_JSON):
+        if not isinstance(content, bytes) or len(content) > maximum:
             raise BoundaryError("file_size_limit")
         with self.directory(parts[:-1], create=True) as parent:
             temporary = ".mcp-" + uuid.uuid4().hex
@@ -398,7 +398,7 @@ class MeetingTools:
             login = None
             if login_parts is not None:
                 try:
-                    login = self.store.read(login_parts, maximum=MAX_JSON)
+                    login = self.store.read(login_parts, maximum=MAX_STATE)
                 except FileNotFoundError:
                     if account != 'default':
                         raise BoundaryError('account_login_required') from None
@@ -421,7 +421,7 @@ class MeetingTools:
                 try:
                     self.store.write_json((*run, "meeting.json"), profile, exclusive=True)
                     if login is not None:
-                        self.store.write((*run, *login_parts), login, exclusive=True)
+                        self.store.write((*run, *login_parts), login, exclusive=True, maximum=MAX_STATE)
                     from runtime import start_process
                     process = start_process([sys.executable, "-E", str(HERE / "mcp_server.py"),
                         "--worker", session_id, "--home", str(self.store.home)],

@@ -118,6 +118,28 @@ class BoundaryTests(unittest.TestCase):
         self.assertFalse((run / 'storage_state.json').exists())
         self.assertFalse((run / 'accounts').exists())
 
+    def test_large_browser_login_is_copied_without_raising_metadata_limit(self):
+        self.store.write_json(('meetings', 'test.json'), {**PROFILE, 'account': 'assistant'})
+        login = json.dumps({'cookies': [], 'origins': [], 'synthetic_storage': 'x' * (256 * 1024)}).encode()
+        parts = ('accounts', 'assistant', 'storage_state.json')
+        self.store.write(parts, login, maximum=bridge.MAX_STATE)
+        with patch('runtime.start_process', return_value=Mock()):
+            result = self.manager.start_web('test', True)
+        self.assertTrue(result['ok'])
+        self.assertEqual(self.store.read(('runs', result['session_id'], *parts), maximum=bridge.MAX_STATE), login)
+        with self.assertRaises(bridge.BoundaryError):
+            self.store.write(('oversized-metadata.json',), login)
+
+    def test_oversized_browser_login_stops_before_worker_creation(self):
+        self.store.write_json(('meetings', 'test.json'), {**PROFILE, 'account': 'assistant'})
+        parts = ('accounts', 'assistant', 'storage_state.json')
+        self.store.write(parts, b'x' * (bridge.MAX_STATE + 1), maximum=bridge.MAX_STATE + 1)
+        with patch('runtime.start_process') as spawn:
+            result = self.manager.start_web('test', True)
+        self.assertEqual(result['error'], 'file_size_limit')
+        spawn.assert_not_called()
+        self.assertFalse((self.home / 'runs').exists())
+
     def test_start_is_secret_free_no_llm_and_creates_private_unique_runs(self):
         self.profile()
         process = Mock(poll=Mock(return_value=None))

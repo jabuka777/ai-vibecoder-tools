@@ -6,7 +6,8 @@ import stat
 import uuid
 
 ACCOUNTS = ('personal', 'assistant', 'guest', 'default')
-MAX_STATE = 64 * 1024
+# Browser storage can exceed the small metadata limit (for example Zoom localStorage).
+MAX_STATE = 4 * 1024 * 1024
 
 
 class AccountError(ValueError):

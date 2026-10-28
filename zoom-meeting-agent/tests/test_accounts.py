@@ -96,6 +96,17 @@ class AccountTests(unittest.TestCase):
             with self.assertRaises(accounts.AccountError):
                 accounts.save_state(self.home, 'assistant', value)
 
+    def test_browser_storage_larger_than_metadata_can_be_saved_and_imported(self):
+        data = {'cookies': [], 'origins': [{'origin': 'https://zoom.us',
+                'localStorage': [{'name': 'synthetic-storage', 'value': 'x' * (256 * 1024)}]}]}
+        path = accounts.save_state(self.home, 'assistant', data)
+        self.assertEqual(accounts.select_state(self.home, 'assistant'), path)
+        self.assertEqual(accounts.read_state_file(path), data)
+        oversized = {'cookies': [], 'origins': [], 'padding': 'x' * accounts.MAX_STATE}
+        with self.assertRaises(accounts.AccountError):
+            accounts.save_state(self.home, 'personal', oversized)
+        self.assertFalse((self.home / 'accounts' / 'personal').exists())
+
     @unittest.skipUnless(os.name == 'posix', 'POSIX ownership and symlinks')
     def test_shared_or_symlinked_account_paths_fail_closed(self):
         self.home.mkdir()
