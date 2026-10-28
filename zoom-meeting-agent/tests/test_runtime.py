@@ -59,6 +59,37 @@ class PageClassificationTests(unittest.TestCase):
 
 
 class StartupCleanupTests(unittest.TestCase):
+    def test_stop_during_launch_closes_browser_without_joining(self):
+        from playwright import sync_api
+        for module in (webjoin, bot):
+            with self.subTest(mode=module.__name__), tempfile.TemporaryDirectory() as folder:
+                session = Path(folder)
+                (session / 'chunks').mkdir()
+                browser = Mock()
+                handlers = {}
+                def launch(**kwargs):
+                    handlers[module.signal.SIGTERM](module.signal.SIGTERM, None)
+                    return browser
+                manager = MagicMock()
+                manager.__enter__.return_value.chromium.launch.side_effect = launch
+                with contextlib.ExitStack() as stack:
+                    stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+                    stack.enter_context(patch.object(sync_api, 'sync_playwright', return_value=manager))
+                    stack.enter_context(patch.object(module, 'new_session', return_value=session))
+                    stack.enter_context(patch.object(module, 'start_stt', return_value=None))
+                    stack.enter_context(patch.object(module, 'need'))
+                    stack.enter_context(patch.object(module.signal, 'signal',
+                                                    side_effect=lambda sig, callback: handlers.update({sig: callback})))
+                    if module is bot:
+                        stack.enter_context(patch.object(bot, 'load_env', return_value={
+                            'ZOOM_SDK_CLIENT_ID': 'synthetic', 'ZOOM_SDK_CLIENT_SECRET': 'synthetic'}))
+                    self.assertEqual(module.main(['--mn', '123456789']), 1)
+                browser.new_context.assert_not_called()
+                browser.close.assert_called_once()
+                status = json.loads((session / 'status.json').read_text())
+                self.assertFalse(status['recording_complete'])
+                self.assertIn('stopped_by_user', status['problems'])
+
     def test_actual_child_and_sdk_server_close_after_browser_launch_failure(self):
         from playwright import sync_api
         from control import create_server

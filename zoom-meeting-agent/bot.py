@@ -12,7 +12,7 @@ from urllib.parse import urlencode
 
 from control import State, create_server
 from env import load_env, need, meeting_password
-from runtime import CaptureGuard, Monitor, finish, new_session, start_stt, start_process
+from runtime import CaptureGuard, Monitor, cooperative_stop, finish, new_session, start_stt, start_process
 
 HERE = Path(__file__).resolve().parent
 
@@ -23,7 +23,8 @@ def bind_control(context, state):
                   route.continue_(headers={**route.request.headers, 'Authorization': 'Bearer ' + state.token}))
 
 
-def main(argv=None):
+@cooperative_stop
+def main(argv=None, *, _stop):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mn', required=True)
     parser.add_argument('--pwd', help=argparse.SUPPRESS)
@@ -63,7 +64,6 @@ def main(argv=None):
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
     monitor = Monitor(session, capture_required=not args.no_stt)
-    signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
     print(f'Session: {session}; LLM: {args.llm}', flush=True)
     deadline = time.monotonic() + args.minutes * 60 if args.minutes else None
     try:
@@ -84,17 +84,21 @@ def main(argv=None):
                 flags.append(f'--use-file-for-fake-audio-capture={args.mic_file.resolve()}')
             browser = playwright.chromium.launch(headless=not args.headed, args=flags)
             try:
+                if _stop.is_set():
+                    raise KeyboardInterrupt()
                 context = browser.new_context(permissions=['microphone', 'camera'])
                 bind_control(context, state)
                 context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))
                 page = context.new_page()
                 capture = CaptureGuard(page, monitor)
                 try:
+                    if _stop.is_set():
+                        raise KeyboardInterrupt()
                     page.goto(f'http://127.0.0.1:{state.port}/?' + urlencode({'mn': meeting, 'pwd': password,
                               'name': args.name or settings.get('AGENT_NAME', 'AI-агент'),
                               'unmute': int(bool(args.mic_file))}))
                     capture.check()
-                    while not state.left.is_set() and not (deadline and time.monotonic() >= deadline):
+                    while not _stop.is_set() and not state.left.is_set() and not (deadline and time.monotonic() >= deadline):
                         capture.check()
                         if state.capture_failed:
                             monitor.failed = True
@@ -122,6 +126,8 @@ def main(argv=None):
         if monitor.joined_at is None:
             monitor.failed = True
             monitor.problems.add('join_not_verified')
+    if _stop.is_set():
+        monitor.problems.add('stopped_by_user')
     return finish(session, monitor, args.llm, args.model)
 
 

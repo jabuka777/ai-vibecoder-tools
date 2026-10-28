@@ -231,7 +231,7 @@ def suite(args):
     sys.path.insert(0, str(args.root / 'zoom-meeting-agent'))
     tests = args.root / 'zoom-meeting-agent/tests'
     patterns = ['test_setup_environment.py', 'test_doctor.py', 'test_configuration.py',
-                'test_skill_entry.py', 'test_setup_sdk.py', 'test_mcp_server.py', 'test_browser_capture.py']
+                'test_skill_entry.py', 'test_setup_sdk.py', 'test_mcp_server.py', 'test_browser_capture.py', 'test_stop_signals.py']
     results = []
     for pattern in patterns:
         # MCP's subprocess stderr needs fileno(); StringIO is not a terminal/file.

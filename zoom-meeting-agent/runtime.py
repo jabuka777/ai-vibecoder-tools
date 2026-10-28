@@ -1,17 +1,41 @@
 """Session lifecycle, process supervision and explicit recording state."""
 import datetime as dt
+from functools import wraps
 import json
 import os
 import shutil
 import signal
 from pathlib import Path
 import subprocess
+import threading
 import time
 import uuid
 
 from env import SESSIONS, venv_python
 
 HERE = Path(__file__).resolve().parent
+
+
+def cooperative_stop(function):
+    """Request shutdown at an API boundary, never interrupt Playwright's loop.
+
+    Raising KeyboardInterrupt while its synchronous greenlet is pumping the
+    driver can leave later flush/close calls blocked. Keep both user signals
+    cooperative through final drain and restore the caller's handlers on exit.
+    """
+    @wraps(function)
+    def run(*args, **kwargs):
+        requested = threading.Event()
+        previous = {}
+        try:
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                previous[sig] = signal.getsignal(sig)
+                signal.signal(sig, lambda *_: requested.set())
+            return function(*args, _stop=requested, **kwargs)
+        finally:
+            for sig, handler in previous.items():
+                signal.signal(sig, handler)
+    return run
 
 
 def atomic_json(path, value):

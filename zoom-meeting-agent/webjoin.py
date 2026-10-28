@@ -11,7 +11,7 @@ import time
 from urllib.parse import urlencode
 
 from env import APP_HOME, need, meeting_password
-from runtime import CaptureGuard, Monitor, atomic_json, finish, new_session, start_stt
+from runtime import CaptureGuard, Monitor, atomic_json, cooperative_stop, finish, new_session, start_stt
 
 HERE = Path(__file__).resolve().parent
 JOINED_SELECTOR = 'button.footer__leave-btn, #wc-footer button[aria-label*="Leave"], #wc-footer button[aria-label*="Выйти"]'
@@ -31,7 +31,8 @@ def classify_page(page):
     return 'connecting'
 
 
-def main(argv=None):
+@cooperative_stop
+def main(argv=None, *, _stop):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--mn', required=True)
     parser.add_argument('--pwd', help=argparse.SUPPRESS)
@@ -50,7 +51,6 @@ def main(argv=None):
     need('ffmpeg')
     session = new_session(args.mn.replace(' ', ''), 'web', args.llm, args.model)
     monitor = Monitor(session)
-    signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
     print(f'Session: {session}; LLM: {args.llm}', flush=True)
     started, last_audio, audio_source = time.monotonic(), None, False
 
@@ -79,6 +79,8 @@ def main(argv=None):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True, args=['--autoplay-policy=no-user-gesture-required'])
             try:
+                if _stop.is_set():
+                    raise KeyboardInterrupt()
                 state = APP_HOME / 'storage_state.json'
                 context = browser.new_context(viewport={'width': 1280, 'height': 720},
                             storage_state=str(state) if state.exists() else None)
@@ -87,10 +89,12 @@ def main(argv=None):
                 context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))
                 page = context.new_page()
                 capture = CaptureGuard(page, monitor)
+                if _stop.is_set():
+                    raise KeyboardInterrupt()
                 page.goto('https://app.zoom.us/wc/join/' + args.mn.replace(' ', '') + '?' + urlencode({'pwd': password}))
                 capture.check()
                 joined = False
-                while time.monotonic() - started < args.minutes * 60:
+                while not _stop.is_set() and time.monotonic() - started < args.minutes * 60:
                     capture.check()
                     state = classify_page(page)
                     if state == 'ended':
@@ -138,6 +142,8 @@ def main(argv=None):
         if monitor.joined_at is None:
             monitor.failed = True
             monitor.problems.add('join_not_verified')
+    if _stop.is_set():
+        monitor.problems.add('stopped_by_user')
     return finish(session, monitor, args.llm, args.model)
 
 
