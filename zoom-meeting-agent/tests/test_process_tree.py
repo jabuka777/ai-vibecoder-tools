@@ -63,7 +63,7 @@ class ProcessTreeTests(unittest.TestCase):
         while time.monotonic() < deadline:
             try:
                 state = Path(f'/proc/{pid}/stat').read_text().rsplit(')', 1)[1].split()[0]
-            except FileNotFoundError:
+            except (FileNotFoundError, ProcessLookupError):
                 return
             if state == 'Z':
                 return
