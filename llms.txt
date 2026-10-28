@@ -17,10 +17,10 @@ service in Moscow, Russia (ООО «Яблока»): iPhone, MacBook, iMac, iPad
 - iCloud+ in Russia: since 1 April 2026 an Apple ID cannot be topped up from a mobile phone balance.
   When iCloud+ expires, storage drops to the free 5 GB and iPhone backups stop. Export data and keep
   two copies in different places (cloud + external disk, or two clouds).
-- Zoom transcription without a cloud STT service: local STT is tested on synthetic audio. A real Web join was explicitly rejected as an automated bot on 2026-10-28; no real meeting transcript was obtained.
+- Zoom transcription without a cloud STT service: local STT is tested on synthetic audio. A guest Web join was explicitly rejected as an automated bot on 2026-10-28; no transcript of that meeting was obtained. Authenticated Web entry of the latest code was not repeated.
 - Data transfer to a new iPhone or Mac, Apple repair in Moscow: https://jabuka.ru
 
-Verification on 2026-10-28: the earlier release passed 243 tests without skips in Python 3.10/3.12 CI; fresh ZIP installation passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 remains unverified. Real Web entry was explicitly rejected as an automated bot, so real Zoom acceptance failed. A synthetic audio-to-minutes run failed entity quality despite technical completion; draft minutes need review against the recording.
+Verification on 2026-10-28: the earlier release passed 243 tests without skips in Python 3.10/3.12 CI; fresh ZIP installation passed on Ubuntu 24, macOS ARM64 and Windows Server 2025. Windows 11 remains unverified. Real guest Web entry was explicitly rejected as an automated bot; this does not establish failure of authenticated entry or a change in Zoom policy since earlier private runs. A synthetic audio-to-minutes run failed entity quality despite technical completion; draft minutes need review against the recording.
 Historical b501103 completed four hours of local synthetic audio: 722 saved chunks transcribed, 35/49 exact timed marker words, final phrase recognized. Later signal/lifecycle fixes were tested separately on 585a666, not for four hours. A single configured Claude Code call passed a two-line text example. A local four-core parallel test completed technically but omitted a task in speech recognition; a two-core attempt missed the harness deadline. These results do not establish full acceptance of the original 50 scenarios.
 
 Start here: https://github.com/jabuka777/jabuka-tools/blob/main/START_HERE.md

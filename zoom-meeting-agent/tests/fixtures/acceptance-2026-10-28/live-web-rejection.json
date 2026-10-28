@@ -3,6 +3,8 @@
   "kind": "real_zoom_entry_attempt",
   "source_revision_at_attempt": "0cb4e1fe63e9dd1846d502df7d48c44816ee5a64",
   "mode": "web",
+  "authentication": "guest; no storage_state.json in the selected isolated application home",
+  "authenticated_web_entry_retested": false,
   "llm": "none",
   "private_diagnostics_used": true,
   "diagnostic_changes": [
@@ -18,5 +20,5 @@
   "meeting_audio_verified": false,
   "meeting_transcript_produced": false,
   "accepted": false,
-  "limitation": "One meeting and one test environment. This establishes a rejected entry, not a universal account policy or successful live capture. Meeting identifiers, credentials, participant data and original screenshots are excluded."
+  "limitation": "One meeting and one guest test environment. This establishes a rejected guest entry, not failure of authenticated Web entry or a universal account policy. Meeting identifiers, credentials, participant data and original screenshots are excluded."
 }

@@ -367,9 +367,11 @@ class RuntimeTests(unittest.TestCase):
 
 
 class WebFlushTests(unittest.TestCase):
-    def run_web(self, *, flush_error):
+    def run_web(self, *, flush_error, saved_login=False):
         with tempfile.TemporaryDirectory() as folder:
             session = Path(folder)
+            if saved_login:
+                (session / 'storage_state.json').write_text('{"cookies": [], "origins": []}')
             (session / "transcript.md").write_text("Synthetic earlier speech", encoding="utf-8")
             page = Mock()
             page.get_by_role.return_value = Locator()
@@ -409,6 +411,11 @@ class WebFlushTests(unittest.TestCase):
                 code = webjoin.main(["--mn", "123456789", "--llm", "none"])
             self.assertEqual(sum(len(call.args) == 2 for call in page.evaluate.call_args_list), 1)
             browser.close.assert_called_once()
+            auth = [json.loads(line)['data'] for line in (session / 'events.jsonl').read_text().splitlines()
+                    if json.loads(line)['kind'] == 'browser_auth']
+            self.assertEqual(auth, [{'stored_login_supplied': saved_login, 'login_verified': False}])
+            self.assertEqual(browser.new_context.call_args.kwargs['storage_state'],
+                             str(session / 'storage_state.json') if saved_login else None)
             return code, json.loads((session / "status.json").read_text(encoding="utf-8"))
 
     def test_interrupt_still_flushes_and_closes_browser(self):
@@ -421,6 +428,11 @@ class WebFlushTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(status["state"], "incomplete")
         self.assertIn("capture_flush_failed", status["problems"])
+
+    def test_saved_login_is_disclosed_without_claiming_verified_identity(self):
+        code, status = self.run_web(flush_error=False, saved_login=True)
+        self.assertEqual(code, 0)
+        self.assertTrue(status['recording_complete'])
 
 
 class CaptureGuardTests(unittest.TestCase):

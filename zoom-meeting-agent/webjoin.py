@@ -132,8 +132,12 @@ def main(argv=None, *, _stop):
                 if _stop.is_set():
                     raise KeyboardInterrupt()
                 state = APP_HOME / 'storage_state.json'
+                stored_login = state.exists()
+                event('browser_auth', {'stored_login_supplied': stored_login, 'login_verified': False})
+                print('Zoom login: ' + ('saved browser state supplied; validity not verified'
+                                      if stored_login else 'guest; no saved login in selected home'), flush=True)
                 context = browser.new_context(viewport={'width': 1280, 'height': 720},
-                            storage_state=str(state) if state.exists() else None)
+                            storage_state=str(state) if stored_login else None)
                 context.expose_binding('__zbAudio', on_audio)
                 context.expose_binding('__zbEvent', lambda src, kind, data: event(kind, data))
                 context.add_init_script(path=str(HERE / 'static' / 'audio-hook.js'))
