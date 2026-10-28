@@ -1,0 +1,67 @@
+{
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "harness_sha256": "5a5a510a518b5f452fa636dc7b714bcbab064a3aee722f9409013fb5fb7afd53",
+  "scope": "Two real Chromium/Whisper recordings with the same synthetic meeting number and shared app home; one stopped with INT, the other ends normally. Separate actual loopback SDK HTTP control servers. No Zoom, SDK meeting or LLM.",
+  "elapsed_seconds": 170.7,
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "other_recording_alive_after_first_stop": true,
+  "other_uploaded_audio_at_least_10s_after_first_stop_request": true,
+  "first_stop_trigger": "First atomically saved WebM, before waiting for speech recognition",
+  "distinct_session_directories": true,
+  "distinct_sdk_http_ports": true,
+  "distinct_sdk_http_tokens": true,
+  "recordings": [
+    {
+      "label": "A",
+      "exit_code": 0,
+      "session_name": "2026-10-28_184144-123456789-web-a57f1aae",
+      "recording_complete": true,
+      "reason": "stopped_by_user",
+      "chunks": 2,
+      "records": 2,
+      "own_keyword_recognized": false,
+      "other_keyword_present": false,
+      "transcript": "[18:41:47] Контульная фраза\n",
+      "source_audio_sha256": "39e1c84701fc05cd90aac96c6823f05fea685da478a89004bc2b459d3033951e"
+    },
+    {
+      "label": "B",
+      "exit_code": 0,
+      "session_name": "2026-10-28_184144-123456789-web-7c4cc2b3",
+      "recording_complete": true,
+      "reason": null,
+      "chunks": 4,
+      "records": 4,
+      "own_keyword_recognized": true,
+      "other_keyword_present": false,
+      "transcript": "[18:41:46] Контульная фраза Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка Контульная фраза Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка Контульная фраза Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка Контульная фраза Олег проверит договор по проекту бета до 10 ноября.\n[18:42:06] Контульная фраза. Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка. Контульная фраза. Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка. Контульная фраза. Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка. Контульная фраза.\n[18:42:26] Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка, контрольная фраза. Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка, контрольная фраза. Олег проверит договор по проекту бета до 10 ноября. Кодовое слово фиалка, контрольная фраза.\n[18:42:46] Проверить договор по проекту бета до 10 ноября.\n",
+      "source_audio_sha256": "8ac5245f64e5578fbb3e27e6391f4b96f7c593ce3f9d54077d28a2cd126edb25"
+    }
+  ],
+  "http": [
+    {
+      "wrong_session_http_status": 401,
+      "wrong_session_queue_unchanged": true,
+      "own_http_status": 200,
+      "own_queue_length": 1
+    },
+    {
+      "wrong_session_http_status": 401,
+      "wrong_session_queue_unchanged": true,
+      "own_http_status": 200,
+      "own_queue_length": 1
+    }
+  ],
+  "passed": true,
+  "limitation": "Own and foreign keyword checks are narrow ASR observations, not a complete independent content comparison or concurrent live Web/SDK Zoom acceptance.",
+  "technical_scope_only": true,
+  "speech_keyword_quality_passed": false,
+  "speech_content_review": "Room A retained only a control-phrase fragment, omitting the task in its known source audio. Technical completion is not speech-quality acceptance.",
+  "source_audio_matches_prior_bytes": true,
+  "comparison_limitation": "CPU assignment and the first-stop trigger both changed. This is a targeted follow-up, not an isolated causal CPU benchmark."
+}

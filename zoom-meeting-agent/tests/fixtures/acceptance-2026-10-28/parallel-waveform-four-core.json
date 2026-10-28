@@ -1,0 +1,70 @@
+{
+  "scope": "Actual captured audio compared with two frozen synthetic source WAVs; no model or Zoom network. Full-source matching is skipped for chunks shorter than either reference.",
+  "method": "Decode 16kHz mono; maximum absolute cross-correlation across complete reference placements, with mean subtraction and energy normalization for the reference and each capture window. FFT implementation checked against exact embedded random-vector control.",
+  "proposed_canary_criteria": {
+    "own_min": 0.5,
+    "own_minus_other_min": 0.2,
+    "acceptance_status": "Narrow engineering canary, not agreed speech or original Zoom acceptance"
+  },
+  "chunks": [
+    {
+      "room": "A",
+      "chunk_index": 0,
+      "duration_seconds": 19.8,
+      "capture_sha256": "14ab667d02733443b2857f944ea54ae60e433281e5b5f4f0a6d08d1f9e223074",
+      "own_source_max_normalized_correlation": 0.9993282365449656,
+      "other_source_max_normalized_correlation": 0.14838948710038383,
+      "correlation_canary_passed": true
+    },
+    {
+      "room": "A",
+      "chunk_index": 1,
+      "duration_seconds": 0.78,
+      "capture_sha256": "8ca8d2596f4703adea6c3d171a78fb99d495c753647afca721205571d54c0092",
+      "own_source_max_normalized_correlation": null,
+      "other_source_max_normalized_correlation": null,
+      "correlation_canary_passed": false
+    },
+    {
+      "room": "B",
+      "chunk_index": 0,
+      "duration_seconds": 19.86,
+      "capture_sha256": "9869a4f26cff2fdb516bf14959b5c446aac169b71be7eecab9a147a56baf50cd",
+      "own_source_max_normalized_correlation": 0.9991691295471028,
+      "other_source_max_normalized_correlation": 0.13920598218281255,
+      "correlation_canary_passed": true
+    },
+    {
+      "room": "B",
+      "chunk_index": 1,
+      "duration_seconds": 19.8,
+      "capture_sha256": "74d44f679862e04c39f5c233b5dd4071f4316f43a206054cde437ca033a54f6c",
+      "own_source_max_normalized_correlation": 0.9990479241374518,
+      "other_source_max_normalized_correlation": 0.14326060796235662,
+      "correlation_canary_passed": true
+    },
+    {
+      "room": "B",
+      "chunk_index": 2,
+      "duration_seconds": 19.98,
+      "capture_sha256": "979c12a5ec60f24b15678d311fadd2e9edc6c42440b614fd1e6cfae0b0b40d2c",
+      "own_source_max_normalized_correlation": 0.996078975358868,
+      "other_source_max_normalized_correlation": 0.1394914562117045,
+      "correlation_canary_passed": true
+    },
+    {
+      "room": "B",
+      "chunk_index": 3,
+      "duration_seconds": 18.12,
+      "capture_sha256": "15557965e9ecdfbe5705a54bb7881e83b2bb2d02d96f05ea8e4be47dc98cb669",
+      "own_source_max_normalized_correlation": 0.9935237877704819,
+      "other_source_max_normalized_correlation": 0.13882692217554807,
+      "correlation_canary_passed": true
+    }
+  ],
+  "eligible_chunks": 5,
+  "eligible_passed": 5,
+  "all_eligible_passed": true,
+  "limitation": "Does not prove absence of every possible signal mixture or general meeting isolation; no semantic recognition-quality claim.",
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e"
+}

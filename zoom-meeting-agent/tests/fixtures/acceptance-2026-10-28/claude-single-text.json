@@ -1,0 +1,154 @@
+{
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "backend": "claude",
+  "requested_model": "sonnet",
+  "scope": "One actual configured Claude CLI invocation through the product text boundary on synthetic text; no audio or Zoom. The configured provider route is not independently attested.",
+  "technical_success": true,
+  "result": {
+    "status": "complete",
+    "schema_version": 1,
+    "model_key": "claude:sonnet",
+    "completed_chunks": 1,
+    "model_calls": 1,
+    "input_sha256": "1a62498a185ff9cddb79a0dad7dcf15957648490238a3d60b8a0aa96441a5302",
+    "total_chunks": 1,
+    "facts": 2,
+    "summary_md_sha256": "33d119114c53ea7e793174b12d4581457af700d5a385857027a8427e4e573944",
+    "summary_json_sha256": "87dd70f5d0440e7e886289e7d46246adb53be39c92b76522e8ea57d84d46bb30",
+    "summary_path": "summary.md",
+    "ledger_path": "summary.json"
+  },
+  "elapsed_seconds": 6.588,
+  "cli_version": "2.1.310",
+  "provider_identity": "Configured Claude Code route; requested alias sonnet. Exact served model and direct provider endpoint not independently attested.",
+  "input": "[00:00] Анна: Я отправлю смету по проекту Альфа до 5 ноября 2026 года.\n[00:10] Олег: Я предлагаю встречу 9 ноября, решение пока не принято.\n",
+  "output": {
+    "chunks": [
+      {
+        "cache_key": "df892e626fca883f5a232959d0eb4d9cc9ef855198de38e4337a2f98e5d73bf7",
+        "facts": 2,
+        "index": 1,
+        "source_ids": [
+          "T000001",
+          "T000002"
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "chunk": 1,
+        "due": "5 ноября 2026 года",
+        "evidence": [
+          {
+            "quote": "[00:00] Анна: Я отправлю смету по проекту Альфа до 5 ноября 2026 года.",
+            "source_id": "T000001"
+          }
+        ],
+        "id": "F000001",
+        "owner": "Анна",
+        "project": "Альфа",
+        "text": "Анна обязалась отправить смету по проекту Альфа до 5 ноября 2026 года.",
+        "type": "task",
+        "verification": "unconfirmed"
+      },
+      {
+        "chunk": 1,
+        "due": "9 ноября",
+        "evidence": [
+          {
+            "quote": "[00:10] Олег: Я предлагаю встречу 9 ноября, решение пока не принято.",
+            "source_id": "T000002"
+          }
+        ],
+        "id": "F000002",
+        "owner": null,
+        "project": null,
+        "text": "Олег предложил провести встречу 9 ноября; решение пока не принято, предложение не утверждено.",
+        "type": "proposal",
+        "verification": "unconfirmed"
+      }
+    ],
+    "input_sha256": "1a62498a185ff9cddb79a0dad7dcf15957648490238a3d60b8a0aa96441a5302",
+    "limitations": [
+      "Evidence checks do not establish semantic correctness.",
+      "No global order between transcript and chat is inferred.",
+      "Cancellations and corrections require human reconciliation."
+    ],
+    "model_key": "claude:sonnet",
+    "schema_version": 1,
+    "sources": [
+      {
+        "id": "T000001",
+        "kind": "transcript",
+        "line": 1,
+        "text": "[00:00] Анна: Я отправлю смету по проекту Альфа до 5 ноября 2026 года."
+      },
+      {
+        "id": "T000002",
+        "kind": "transcript",
+        "line": 2,
+        "text": "[00:10] Олег: Я предлагаю встречу 9 ноября, решение пока не принято."
+      }
+    ],
+    "status": "complete",
+    "verification": "unconfirmed"
+  },
+  "metrics": [
+    {
+      "backend": "claude",
+      "model": "sonnet",
+      "input_chars": 6970,
+      "success": true,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 3136,
+        "cache_read_input_tokens": 0,
+        "output_tokens": 504,
+        "output_tokens_details": {
+          "thinking_tokens": 234
+        },
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "standard",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 3136,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "inference_geo": "global",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 504,
+            "cache_read_input_tokens": 0,
+            "cache_creation_input_tokens": 3136,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 0,
+              "ephemeral_1h_input_tokens": 3136
+            },
+            "type": "message"
+          }
+        ],
+        "speed": "standard",
+        "fallback_credit": null
+      },
+      "cost_usd": 0.017588,
+      "output_chars": 569,
+      "elapsed_seconds": 6.574,
+      "ts": 1793199160.0538673
+    }
+  ],
+  "original_scope": "One synthetic two-line text, not Zoom/audio, repeated quality acceptance or an actual quota/authentication failure.",
+  "previous_harness_error": {
+    "actual_provider_called": false,
+    "reason": "Initial callback omitted timeout keyword; an incomplete status object was incorrectly considered successful by the initial harness. Original report retained privately.",
+    "original_report_sha256": "37aa21734a2ff4c6c8be39517f3f5baeb49ee22000840ad24013f61a8ef22770"
+  },
+  "limited_semantic_checks": {
+    "task_owner_project_due": true,
+    "unaccepted_meeting_remains_proposal": true,
+    "exactly_two_facts": true
+  },
+  "limited_semantic_checks_passed": true
+}

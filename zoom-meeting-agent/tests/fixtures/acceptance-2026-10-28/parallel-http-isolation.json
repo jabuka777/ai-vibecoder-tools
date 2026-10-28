@@ -1,0 +1,23 @@
+{
+  "scope": "Two actual loopback control servers with the same synthetic meeting number, distinct states and directories; no SDK, Zoom or model. Web capture uses exposed bindings rather than these HTTP ports.",
+  "distinct_ports": true,
+  "distinct_tokens": true,
+  "checks": [
+    {
+      "other_token_status": 401,
+      "other_token_queue_unchanged": true,
+      "own_token_status": 200,
+      "own_queue_size": 1,
+      "only_own_message": true
+    },
+    {
+      "other_token_status": 401,
+      "other_token_queue_unchanged": true,
+      "own_token_status": 200,
+      "own_queue_size": 1,
+      "only_own_message": true
+    }
+  ],
+  "passed": true,
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e"
+}

@@ -1,0 +1,50 @@
+{
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "scope": "Two actual Chromium/Whisper Web recordings with one shared app home and the same synthetic meeting number; both restricted together to two CPU cores. No real Zoom.",
+  "status": "incomplete",
+  "harness_deadline_seconds": 360,
+  "harness_timed_out": true,
+  "recordings": [
+    {
+      "label": "A",
+      "session_name": "2026-10-28_175016-123456789-web-d82cfba2",
+      "saved_chunks": 4,
+      "stt_records": 3,
+      "status": {
+        "state": "recording_stt_starting",
+        "reason": null,
+        "ts": 1793199095.709579,
+        "incomplete": false,
+        "recording_complete": null,
+        "summary_state": null,
+        "problems": []
+      },
+      "own_keyword_recognized": false,
+      "foreign_keyword_found": false,
+      "transcript": "[17:51:00] Ана отправит смету по проекту Альфа до 5 ноября.\n",
+      "source_audio_sha256": "39e1c84701fc05cd90aac96c6823f05fea685da478a89004bc2b459d3033951e"
+    },
+    {
+      "label": "B",
+      "session_name": "2026-10-28_175015-123456789-web-924e7c86",
+      "saved_chunks": 4,
+      "stt_records": 2,
+      "status": {
+        "state": "recording_stt_starting",
+        "reason": null,
+        "ts": 1793199095.7482772,
+        "incomplete": false,
+        "recording_complete": null,
+        "summary_state": null,
+        "problems": []
+      },
+      "own_keyword_recognized": false,
+      "foreign_keyword_found": false,
+      "transcript": "[17:50:40] Олег проверит договор по проекту бета до 10 ноября.\n",
+      "source_audio_sha256": "8ac5245f64e5578fbb3e27e6391f4b96f7c593ce3f9d54077d28a2cd126edb25"
+    }
+  ],
+  "distinct_session_directories": true,
+  "limitation": "The six-minute harness deadline stopped its own observed processes during STT drain. No complete parallel recording acceptance is claimed. INT was requested after the first persisted STT record, which may occur after the local room has already ended; this does not prove stopping one while the other still captures audio.",
+  "supervisor_log_sha256": "16ab5817cfa30f199adb65ec7d9219a9494109f804918f68b0cbaf2a44044d97"
+}

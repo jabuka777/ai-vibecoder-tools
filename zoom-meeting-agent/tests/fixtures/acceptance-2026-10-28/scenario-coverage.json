@@ -12,12 +12,11 @@
   },
   "counts": {
     "not_executed": 2,
-    "partial": 36,
+    "partial": 39,
     "passed": 8,
-    "not_applicable": 1,
-    "running": 3
+    "not_applicable": 1
   },
-  "scope": "Synthetic data, local isolated processes and queues, actual local Whisper/Codex, GitHub-hosted installation runners. No real Zoom, Claude or DeepSeek acceptance.",
+  "scope": "Synthetic local component, browser/Whisper and configured Codex/Claude CLI checks plus GitHub-hosted installation runners. Historical four-hour baseline b501103. No real Zoom or live DeepSeek acceptance.",
   "scenarios": [
     {
       "id": "F01",
@@ -191,7 +190,9 @@
         "zoom-meeting-agent/tests/test_minutes.py",
         "zoom-meeting-agent/tests/test_evaluate_minutes.py"
       ],
-      "local_quality_check_failed": true
+      "local_quality_check_failed": true,
+      "additional_claude_check": "One actual configured Claude Code 2.1.310 / sonnet call on two synthetic text lines: task and unaccepted proposal preserved separately. Exact provider/model route is not independently attested.",
+      "additional_claude_evidence": "claude-single-text.json"
     },
     {
       "id": "F16",
@@ -235,7 +236,9 @@
       "regression_files": [
         "zoom-meeting-agent/tests/test_control.py",
         "zoom-meeting-agent/tests/test_routing.py"
-      ]
+      ],
+      "additional_claude_check": "One actual configured Claude Code 2.1.310 / sonnet call on two synthetic text lines: task and unaccepted proposal preserved separately. Exact provider/model route is not independently attested.",
+      "additional_claude_evidence": "claude-single-text.json"
     },
     {
       "id": "F20",
@@ -503,13 +506,15 @@
     {
       "id": "N17",
       "title": "Скорость под часовым потоком",
-      "status": "running",
-      "observed": "Four-hour real-clock local Chromium/Whisper run started on b501103; one-hour checkpoint pending.",
+      "status": "partial",
+      "observed": "Historical b501103 real-clock local four-hour Chromium/Whisper run finished. See exact inference and chunk-end latency series; one-hour checkpoint retained. This is not word-level latency or agreed minimum hardware acceptance.",
       "remaining": "Minimum hardware and real Zoom are not supplied.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_doctor.py",
         "zoom-meeting-agent/tests/test_stt.py"
-      ]
+      ],
+      "evidence": "soak-4h-baseline.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "N18",
@@ -525,37 +530,49 @@
     {
       "id": "N19",
       "title": "Память, CPU и заполнение диска",
-      "status": "running",
-      "observed": "Real-clock soak records RSS, CPU, disk, queue and two-hour checkpoint.",
+      "status": "partial",
+      "observed": "Historical b501103 four-hour resource series and two-hour checkpoint completed; RSS, CPU, disk and queue recorded. Proposed thresholds are not agreed acceptance. Separate two-core parallel recording attempt missed the harness deadline.",
       "remaining": "Agreed hardware, isolated nearly-full volume and CPU stress not supplied.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_runtime.py",
         "zoom-meeting-agent/tests/test_doctor.py",
         "zoom-meeting-agent/tests/test_setup_environment.py"
-      ]
+      ],
+      "evidence": "soak-resource-series.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "N20",
       "title": "Четырёхчасовая непрерывная запись",
-      "status": "running",
-      "observed": "Four-hour actual browser/capture/Whisper local room is running; completion not yet asserted.",
+      "status": "partial",
+      "observed": "Historical b501103 four-hour real-clock local capture/STT finished; technical completion and exact timed marker quality are reported separately. Latest 585a666 signal/lifecycle changes were not four-hour tested.",
       "remaining": "Real Zoom four-hour pipeline and participant observation.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_process_tree.py",
         "zoom-meeting-agent/tests/test_runtime.py"
-      ]
+      ],
+      "evidence": "soak-4h-baseline.json",
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
     },
     {
       "id": "N21",
       "title": "Коллизии и независимость сессий",
       "status": "partial",
-      "observed": "Real loopback session separation and cross-process MCP admission pass.",
+      "observed": "The two-core parallel run missed the six-minute harness deadline. A four-core follow-up with byte-identical source WAVs and an earlier stop trigger completed both sessions in 170.7s: 2/2 and 4/4 chunks; the second kept uploading after stopping the first. Separate HTTP ports/tokens reject the other token without queue mutation. Waveform canaries support capture separation. Room A omitted the task in recognized text; speech quality is not accepted. These are local components, not concurrent real Zoom meetings.",
       "remaining": "Parallel real Web/SDK meetings including same meeting number.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_routing.py",
         "zoom-meeting-agent/tests/test_control.py",
         "zoom-meeting-agent/tests/test_mcp_server.py"
-      ]
+      ],
+      "evidence": [
+        "parallel-recordings-incomplete.json",
+        "parallel-recordings-four-core.json",
+        "parallel-http-isolation.json",
+        "parallel-waveform-two-core.json",
+        "parallel-waveform-four-core.json"
+      ],
+      "measured_revision": "585a66672dca324f39d86a218717567a9646a33e"
     },
     {
       "id": "N22",
@@ -621,5 +638,6 @@
     }
   ],
   "additional_tested_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394",
-  "latest_targeted_revision": "585a66672dca324f39d86a218717567a9646a33e"
+  "latest_targeted_revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "latest_additional_evidence_revision": "585a66672dca324f39d86a218717567a9646a33e"
 }
