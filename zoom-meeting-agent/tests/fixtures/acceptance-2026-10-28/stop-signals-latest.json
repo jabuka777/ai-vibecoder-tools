@@ -1,0 +1,118 @@
+{
+  "source_revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "source_files_sha256": {
+    "webjoin.py": "06dd70b492a4efd01e6849c71975aaec4b7020cbe6634daf33af271c886f7172",
+    "runtime.py": "15987f0343020e67e52b57b989cf5d16f54bbeae26fe9df6de13d1a2938c9664",
+    "bot.py": "b2a2b22db6ff999481ff2c9b55808e3d94aee1f22384ed634436e022a9983a72",
+    "static/audio-hook.js": "d4b47dd5afe7626026818901182917551ae5537bd85b931f923c6e3be90bbf3c",
+    "stt.py": "fa1c626c19984c899ea6c21a4793c2983c566b3485493a052795b9d962aa2017"
+  },
+  "scope": "Actual Chromium, Web capture, ffmpeg and local Whisper in an intercepted synthetic room; no Zoom or LLM. Linux cores 2,3.",
+  "results": [
+    {
+      "signal": "SIGINT",
+      "exit_code": 0,
+      "elapsed_seconds": 52.158,
+      "signal_to_exit_seconds": 12.581,
+      "signal_sent_after_persisted_speech": true,
+      "status": [
+        {
+          "state": "complete",
+          "reason": "stopped_by_user",
+          "ts": 1793197879.0718324,
+          "incomplete": false,
+          "recording_complete": true,
+          "summary_state": null,
+          "problems": [
+            "stopped_by_user"
+          ]
+        }
+      ],
+      "stt_records": 2,
+      "saved_chunks": 2,
+      "quarantined": 0,
+      "surviving_owned_children_before_harness_cleanup": 0,
+      "not_falsely_complete_after_kill": null,
+      "graceful_passed": true,
+      "surviving_owned_children_after_harness_cleanup": 0
+    },
+    {
+      "signal": "SIGTERM",
+      "exit_code": 0,
+      "elapsed_seconds": 46.343,
+      "signal_to_exit_seconds": 10.122,
+      "signal_sent_after_persisted_speech": true,
+      "status": [
+        {
+          "state": "complete",
+          "reason": "stopped_by_user",
+          "ts": 1793197927.4418833,
+          "incomplete": false,
+          "recording_complete": true,
+          "summary_state": null,
+          "problems": [
+            "stopped_by_user"
+          ]
+        }
+      ],
+      "stt_records": 2,
+      "saved_chunks": 2,
+      "quarantined": 0,
+      "surviving_owned_children_before_harness_cleanup": 0,
+      "not_falsely_complete_after_kill": null,
+      "graceful_passed": true,
+      "surviving_owned_children_after_harness_cleanup": 0
+    },
+    {
+      "signal": "SIGKILL",
+      "exit_code": -9,
+      "elapsed_seconds": 34.581,
+      "signal_to_exit_seconds": 0.007,
+      "signal_sent_after_persisted_speech": true,
+      "status": [
+        {
+          "state": "recording_stt_starting",
+          "reason": null,
+          "ts": 1793197963.1673682,
+          "incomplete": false,
+          "recording_complete": null,
+          "summary_state": null,
+          "problems": []
+        }
+      ],
+      "stt_records": 1,
+      "saved_chunks": 1,
+      "quarantined": 0,
+      "surviving_owned_children_before_harness_cleanup": 0,
+      "not_falsely_complete_after_kill": true,
+      "graceful_passed": null,
+      "surviving_owned_children_after_harness_cleanup": 0
+    }
+  ],
+  "limitation": "SIGKILL bypasses product cleanup; any remaining owned children are cleaned by this harness using observed PID identities. That cleanup is not a product guarantee.",
+  "earlier_failures": [
+    {
+      "revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55",
+      "signal": "SIGINT",
+      "observed": "Parent did not exit within 90 seconds after SIGINT; harness timed out and cleaned its observed processes. No completion report was produced.",
+      "supervisor_log_sha256": "5edb8bff38007e1ff6824f2ca4e6f29c22cfde26720f863ff8e9025d88bf3e2d"
+    },
+    {
+      "revision": "a6531afe26756ffbf2992837eaf41d3867063dcd",
+      "signal": "SIGKILL",
+      "surviving_owned_children_before_harness_cleanup": 1,
+      "surviving_owned_children_after_harness_cleanup": 0,
+      "report_sha256": "468df19273dcd1512ac8a623463d96196dec64fb80556e6aa89318fd80c15157"
+    }
+  ],
+  "product_changes": [
+    "INT/TERM handlers set a plain flag; the recording loop flushes and finalizes after the synchronous browser API returns.",
+    "On Linux, owned subprocesses exec through a PR_SET_PDEATHSIG launcher. The explicitly detached MCP recording worker is exempt."
+  ],
+  "limitations": [
+    "Actual Whisper and Chromium in an intercepted local room; no Zoom, LLM or human participants.",
+    "SIGKILL cannot save an unsent browser audio tail or run application finalization. The last saved status may remain recording.",
+    "Zero surviving owned children was observed before harness cleanup in these Linux cases. This is not a guarantee for every third-party descendant or another OS.",
+    "The four-hour endurance run uses historical b501103, not this revision."
+  ]
+}

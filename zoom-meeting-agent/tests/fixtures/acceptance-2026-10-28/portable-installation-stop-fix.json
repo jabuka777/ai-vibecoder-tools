@@ -1,0 +1,1200 @@
+{
+  "revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "unit_ci": {
+    "url": "https://github.com/jabuka777/jabuka-tools/actions/runs/40706381979",
+    "results": {
+      "3.10": {
+        "tests": 243,
+        "skipped": 0,
+        "seconds": 43.384
+      },
+      "3.12": {
+        "tests": 243,
+        "skipped": 0,
+        "seconds": 43.932
+      }
+    },
+    "log_sha256": "9e5cd8143e94d39d32ab146be07fa17bf55aa25ce2817623447e92ca2dc3dac9"
+  },
+  "installation_ci": "https://github.com/jabuka777/jabuka-tools/actions/runs/40706382136",
+  "results": [
+    {
+      "revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "scope": "Fresh source ZIP installation and local components; not real Zoom or independent novice acceptance",
+      "success": true,
+      "platform": {
+        "system": "Linux",
+        "release": "6.17.0-1022-azure",
+        "version": "#22-Ubuntu SMP Mon Jul 27 17:24:03 UTC 2026",
+        "machine": "x86_64",
+        "description": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+        "windows_edition": null,
+        "macos_version": null,
+        "python": "3.12.15",
+        "runner_label": "ubuntu-latest",
+        "image_os": "ubuntu24",
+        "image_version": "20261023.334.3"
+      },
+      "package": {
+        "schema": 1,
+        "revision": "585a66672dca324f39d86a218717567a9646a33e",
+        "archive": "zoom-meeting-agent.zip",
+        "archive_sha256": "dde6a7427f93a79254413fead1dbf9155c8ca3801371e005d45d92cf6469c570",
+        "bootstrap_sha256": "73f5816d2256c040b31d92c25c7708cf2353f1140acf79b37b2743b4d79924f7",
+        "source_is_clean": true
+      },
+      "elapsed_seconds": 78.678,
+      "packages": [
+        {
+          "name": "annotated-types",
+          "version": "0.8.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "attrs",
+          "version": "26.1.0"
+        },
+        {
+          "name": "av",
+          "version": "19.0.2"
+        },
+        {
+          "name": "cffi",
+          "version": "2.1.1"
+        },
+        {
+          "name": "click",
+          "version": "8.5.0"
+        },
+        {
+          "name": "cryptography",
+          "version": "50.0.2"
+        },
+        {
+          "name": "ctranslate2",
+          "version": "4.8.4"
+        },
+        {
+          "name": "faster-whisper",
+          "version": "1.2.1"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.4"
+        },
+        {
+          "name": "flatbuffers",
+          "version": "25.12.19"
+        },
+        {
+          "name": "fsspec",
+          "version": "2026.9.0"
+        },
+        {
+          "name": "greenlet",
+          "version": "3.5.6"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "hf-xet",
+          "version": "1.7.0"
+        },
+        {
+          "name": "httpcore2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "httpx2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "huggingface_hub",
+          "version": "2.3.0"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "jsonschema",
+          "version": "4.26.0"
+        },
+        {
+          "name": "jsonschema-specifications",
+          "version": "2025.9.1"
+        },
+        {
+          "name": "mcp",
+          "version": "2.0.0"
+        },
+        {
+          "name": "mcp-types",
+          "version": "2.0.0"
+        },
+        {
+          "name": "numpy",
+          "version": "2.5.4"
+        },
+        {
+          "name": "onnxruntime",
+          "version": "1.31.1"
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.45.1"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pip",
+          "version": "25.0.1"
+        },
+        {
+          "name": "playwright",
+          "version": "1.62.0"
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2"
+        },
+        {
+          "name": "pycparser",
+          "version": "3.12"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.14.1"
+        },
+        {
+          "name": "pydantic_core",
+          "version": "2.50.1"
+        },
+        {
+          "name": "pyee",
+          "version": "13.0.1"
+        },
+        {
+          "name": "PyJWT",
+          "version": "2.15.1"
+        },
+        {
+          "name": "python-multipart",
+          "version": "0.0.32"
+        },
+        {
+          "name": "PyYAML",
+          "version": "6.0.3"
+        },
+        {
+          "name": "referencing",
+          "version": "0.37.0"
+        },
+        {
+          "name": "rpds-py",
+          "version": "2026.9.1"
+        },
+        {
+          "name": "sse-starlette",
+          "version": "3.6.0"
+        },
+        {
+          "name": "starlette",
+          "version": "1.10.0"
+        },
+        {
+          "name": "tokenizers",
+          "version": "0.23.3"
+        },
+        {
+          "name": "tqdm",
+          "version": "4.70.1"
+        },
+        {
+          "name": "truststore",
+          "version": "0.10.5"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.4"
+        },
+        {
+          "name": "uvicorn",
+          "version": "0.54.0"
+        }
+      ],
+      "not_verified": [
+        "real Zoom F01/F02/F13",
+        "Windows 11 unless actual OS says Windows 11",
+        "independent human N26",
+        "recognition quality corpus",
+        "cloud LLM",
+        "Windows MCP"
+      ],
+      "readonly_source_changes": [
+        "zoom-meeting-agent/__pycache__/doctor.cpython-312.pyc",
+        "zoom-meeting-agent/__pycache__/env.cpython-312.pyc",
+        "zoom-meeting-agent/__pycache__/runtime.cpython-312.pyc"
+      ],
+      "steps": [
+        {
+          "name": "install_skills",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "readonly_plan",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.138
+        },
+        {
+          "name": "fresh_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 36.613
+        },
+        {
+          "name": "doctor_runtime",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 1.809
+        },
+        {
+          "name": "offline_resume",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 5.453
+        },
+        {
+          "name": "repeat_skill_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.09
+        },
+        {
+          "name": "portable_component_tests",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 20.225
+        },
+        {
+          "name": "real_local_speech",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 13.864
+        },
+        {
+          "name": "package_inventory",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.258
+        }
+      ],
+      "suites": [
+        {
+          "suite": "test_setup_environment.py",
+          "tests_run": 22,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_doctor.py",
+          "tests_run": 15,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_configuration.py",
+          "tests_run": 11,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_skill_entry.py",
+          "tests_run": 1,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_setup_sdk.py",
+          "tests_run": 13,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_mcp_server.py",
+          "tests_run": 26,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_browser_capture.py",
+          "tests_run": 6,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_stop_signals.py",
+          "tests_run": 2,
+          "passed": true,
+          "skipped": []
+        }
+      ],
+      "speech": {
+        "success": true,
+        "exit_code": 0,
+        "elapsed_seconds": 13.217,
+        "fixture_sha256": "bd1121612c2e87c8d4718e47ff3a64d46cc4480c431e5bd030ffc2f7aab91f71",
+        "reference_text": "Проверка записи. Программа работает. Это тестовая запись. Проверка завершена.",
+        "keywords": {
+          "проверка": false,
+          "работает": true,
+          "запись": false
+        },
+        "keyword_check": {
+          "passed": false,
+          "matched": 1,
+          "total": 3,
+          "gates_installation": false
+        },
+        "recognition_quality_accepted": false,
+        "transcript": "[22:13:34] ПРА МЕРКА НАПИСИ! ПРА ГРАМА РАБОТАЕТ! ЭТО ТЕСТА МАЯ НАПИС! ПРА МЕРКА НАМИРЩИНА!\n",
+        "model_snapshot": "536b0662742c02347bc0e980a01041f333bce120",
+        "model_files_sha256": {
+          "tokenizer.json": "fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab",
+          "model.bin": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671",
+          "config.json": "b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828",
+          "vocabulary.txt": "34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913"
+        },
+        "scope": "One synthetic Russian phrase through real ffmpeg and Whisper small; not a quality benchmark or Zoom"
+      },
+      "evidence_sha256": {
+        "report.json": "66526d02c13f1772b41325c68d6186706ea4d2d3f974fcb997293d4cc1ac45b6",
+        "tests.json": "70a237a1c6d2b6aac769f290389fe9c0ed30766e2c8cf92e8b8f42d4aa2906cf",
+        "speech.json": "283aa57c2101c4810ab12a77aea8d3ddc50b541a0be115d94e8e7aed99b087c1"
+      }
+    },
+    {
+      "revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "scope": "Fresh source ZIP installation and local components; not real Zoom or independent novice acceptance",
+      "success": true,
+      "platform": {
+        "system": "Darwin",
+        "release": "25.6.0",
+        "version": "Darwin Kernel Version 25.6.0: Fri Jul 31 19:16:43 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_VMAPPLE",
+        "machine": "arm64",
+        "description": "macOS-26.6.2-arm64-arm-64bit",
+        "windows_edition": null,
+        "macos_version": "26.6.2",
+        "python": "3.12.10",
+        "runner_label": "macos-latest",
+        "image_os": "macos26",
+        "image_version": "20261021.0445.8"
+      },
+      "package": {
+        "schema": 1,
+        "revision": "585a66672dca324f39d86a218717567a9646a33e",
+        "archive": "zoom-meeting-agent.zip",
+        "archive_sha256": "dde6a7427f93a79254413fead1dbf9155c8ca3801371e005d45d92cf6469c570",
+        "bootstrap_sha256": "73f5816d2256c040b31d92c25c7708cf2353f1140acf79b37b2743b4d79924f7",
+        "source_is_clean": true
+      },
+      "elapsed_seconds": 140.037,
+      "packages": [
+        {
+          "name": "annotated-types",
+          "version": "0.8.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "attrs",
+          "version": "26.1.0"
+        },
+        {
+          "name": "av",
+          "version": "19.0.2"
+        },
+        {
+          "name": "cffi",
+          "version": "2.1.1"
+        },
+        {
+          "name": "click",
+          "version": "8.5.0"
+        },
+        {
+          "name": "cryptography",
+          "version": "50.0.2"
+        },
+        {
+          "name": "ctranslate2",
+          "version": "4.8.4"
+        },
+        {
+          "name": "faster-whisper",
+          "version": "1.2.1"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.4"
+        },
+        {
+          "name": "flatbuffers",
+          "version": "25.12.19"
+        },
+        {
+          "name": "fsspec",
+          "version": "2026.9.0"
+        },
+        {
+          "name": "greenlet",
+          "version": "3.5.6"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "hf-xet",
+          "version": "1.7.0"
+        },
+        {
+          "name": "httpcore2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "httpx2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "huggingface_hub",
+          "version": "2.3.0"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "jsonschema",
+          "version": "4.26.0"
+        },
+        {
+          "name": "jsonschema-specifications",
+          "version": "2025.9.1"
+        },
+        {
+          "name": "mcp",
+          "version": "2.0.0"
+        },
+        {
+          "name": "mcp-types",
+          "version": "2.0.0"
+        },
+        {
+          "name": "numpy",
+          "version": "2.5.4"
+        },
+        {
+          "name": "onnxruntime",
+          "version": "1.31.1"
+        },
+        {
+          "name": "opentelemetry-api",
+          "version": "1.45.1"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pip",
+          "version": "25.0.1"
+        },
+        {
+          "name": "playwright",
+          "version": "1.62.0"
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2"
+        },
+        {
+          "name": "pycparser",
+          "version": "3.12"
+        },
+        {
+          "name": "pydantic",
+          "version": "2.14.1"
+        },
+        {
+          "name": "pydantic_core",
+          "version": "2.50.1"
+        },
+        {
+          "name": "pyee",
+          "version": "13.0.1"
+        },
+        {
+          "name": "PyJWT",
+          "version": "2.15.1"
+        },
+        {
+          "name": "python-multipart",
+          "version": "0.0.32"
+        },
+        {
+          "name": "PyYAML",
+          "version": "6.0.3"
+        },
+        {
+          "name": "referencing",
+          "version": "0.37.0"
+        },
+        {
+          "name": "rpds-py",
+          "version": "2026.9.1"
+        },
+        {
+          "name": "sse-starlette",
+          "version": "3.6.0"
+        },
+        {
+          "name": "starlette",
+          "version": "1.10.0"
+        },
+        {
+          "name": "tokenizers",
+          "version": "0.23.3"
+        },
+        {
+          "name": "tqdm",
+          "version": "4.70.1"
+        },
+        {
+          "name": "truststore",
+          "version": "0.10.5"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "typing-inspection",
+          "version": "0.4.4"
+        },
+        {
+          "name": "uvicorn",
+          "version": "0.54.0"
+        }
+      ],
+      "not_verified": [
+        "real Zoom F01/F02/F13",
+        "Windows 11 unless actual OS says Windows 11",
+        "independent human N26",
+        "recognition quality corpus",
+        "cloud LLM",
+        "Windows MCP"
+      ],
+      "readonly_source_changes": [
+        "zoom-meeting-agent/__pycache__/doctor.cpython-312.pyc",
+        "zoom-meeting-agent/__pycache__/env.cpython-312.pyc",
+        "zoom-meeting-agent/__pycache__/runtime.cpython-312.pyc"
+      ],
+      "steps": [
+        {
+          "name": "install_skills",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.092
+        },
+        {
+          "name": "readonly_plan",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.203
+        },
+        {
+          "name": "fresh_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 42.87
+        },
+        {
+          "name": "doctor_runtime",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 4.486
+        },
+        {
+          "name": "offline_resume",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 8.415
+        },
+        {
+          "name": "repeat_skill_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.202
+        },
+        {
+          "name": "portable_component_tests",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 58.653
+        },
+        {
+          "name": "real_local_speech",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 24.502
+        },
+        {
+          "name": "package_inventory",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.539
+        }
+      ],
+      "suites": [
+        {
+          "suite": "test_setup_environment.py",
+          "tests_run": 22,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_doctor.py",
+          "tests_run": 15,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_configuration.py",
+          "tests_run": 11,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_skill_entry.py",
+          "tests_run": 1,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_setup_sdk.py",
+          "tests_run": 13,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_mcp_server.py",
+          "tests_run": 26,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_browser_capture.py",
+          "tests_run": 6,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_stop_signals.py",
+          "tests_run": 2,
+          "passed": true,
+          "skipped": []
+        }
+      ],
+      "speech": {
+        "success": true,
+        "exit_code": 0,
+        "elapsed_seconds": 23.56,
+        "fixture_sha256": "bd1121612c2e87c8d4718e47ff3a64d46cc4480c431e5bd030ffc2f7aab91f71",
+        "reference_text": "Проверка записи. Программа работает. Это тестовая запись. Проверка завершена.",
+        "keywords": {
+          "проверка": false,
+          "работает": false,
+          "запись": false
+        },
+        "keyword_check": {
+          "passed": false,
+          "matched": 0,
+          "total": 3,
+          "gates_installation": false
+        },
+        "recognition_quality_accepted": false,
+        "transcript": "[22:13:34] ПОДАМЕРКА НАПИСИ! ПОДАМЕРА БОТАЕТ! ЭТО ТЕСТА МАЯ НАПИС! ПОДАМЕРКА НАМИРСЬ И НАА!\n",
+        "model_snapshot": "536b0662742c02347bc0e980a01041f333bce120",
+        "model_files_sha256": {
+          "model.bin": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671",
+          "config.json": "b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828",
+          "tokenizer.json": "fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab",
+          "vocabulary.txt": "34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913"
+        },
+        "scope": "One synthetic Russian phrase through real ffmpeg and Whisper small; not a quality benchmark or Zoom"
+      },
+      "evidence_sha256": {
+        "report.json": "2c27a5fda4a08dd0cf3b6ccbe0e3a637c022285bfd80a47ce8d1886f5e14c864",
+        "tests.json": "26da9b36a363cd1959017eec84b674dba70523076f362e56d64ce978a97d1fa2",
+        "speech.json": "734e9e439a9943fb56ae6c7de64b0e37d6371b7842c0c164f78c5ae2c028bb01"
+      }
+    },
+    {
+      "revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "scope": "Fresh source ZIP installation and local components; not real Zoom or independent novice acceptance",
+      "success": true,
+      "platform": {
+        "system": "Windows",
+        "release": "2025Server",
+        "version": "10.0.26100",
+        "machine": "AMD64",
+        "description": "Windows-2025Server-10.0.26100-SP0",
+        "windows_edition": "ServerDatacenter",
+        "macos_version": null,
+        "python": "3.12.10",
+        "runner_label": "windows-latest",
+        "image_os": "win25-vs2026",
+        "image_version": "20261021.278.1"
+      },
+      "package": {
+        "schema": 1,
+        "revision": "585a66672dca324f39d86a218717567a9646a33e",
+        "archive": "zoom-meeting-agent.zip",
+        "archive_sha256": "dde6a7427f93a79254413fead1dbf9155c8ca3801371e005d45d92cf6469c570",
+        "bootstrap_sha256": "73f5816d2256c040b31d92c25c7708cf2353f1140acf79b37b2743b4d79924f7",
+        "source_is_clean": true
+      },
+      "elapsed_seconds": 77.719,
+      "packages": [
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "av",
+          "version": "19.0.2"
+        },
+        {
+          "name": "click",
+          "version": "8.5.0"
+        },
+        {
+          "name": "colorama",
+          "version": "0.4.6"
+        },
+        {
+          "name": "ctranslate2",
+          "version": "4.8.4"
+        },
+        {
+          "name": "faster-whisper",
+          "version": "1.2.1"
+        },
+        {
+          "name": "filelock",
+          "version": "4.2.4"
+        },
+        {
+          "name": "flatbuffers",
+          "version": "25.12.19"
+        },
+        {
+          "name": "fsspec",
+          "version": "2026.9.0"
+        },
+        {
+          "name": "greenlet",
+          "version": "3.5.6"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "hf-xet",
+          "version": "1.7.0"
+        },
+        {
+          "name": "httpcore2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "httpx2",
+          "version": "2.16.0"
+        },
+        {
+          "name": "huggingface_hub",
+          "version": "2.3.0"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "numpy",
+          "version": "2.5.4"
+        },
+        {
+          "name": "onnxruntime",
+          "version": "1.31.1"
+        },
+        {
+          "name": "packaging",
+          "version": "26.3"
+        },
+        {
+          "name": "pip",
+          "version": "25.0.1"
+        },
+        {
+          "name": "playwright",
+          "version": "1.62.0"
+        },
+        {
+          "name": "protobuf",
+          "version": "7.36.2"
+        },
+        {
+          "name": "pyee",
+          "version": "13.0.1"
+        },
+        {
+          "name": "PyYAML",
+          "version": "6.0.3"
+        },
+        {
+          "name": "tokenizers",
+          "version": "0.23.3"
+        },
+        {
+          "name": "tqdm",
+          "version": "4.70.1"
+        },
+        {
+          "name": "truststore",
+          "version": "0.10.5"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        }
+      ],
+      "not_verified": [
+        "real Zoom F01/F02/F13",
+        "Windows 11 unless actual OS says Windows 11",
+        "independent human N26",
+        "recognition quality corpus",
+        "cloud LLM",
+        "Windows MCP"
+      ],
+      "readonly_source_changes": [
+        "zoom-meeting-agent\\__pycache__\\doctor.cpython-312.pyc",
+        "zoom-meeting-agent\\__pycache__\\env.cpython-312.pyc",
+        "zoom-meeting-agent\\__pycache__\\runtime.cpython-312.pyc"
+      ],
+      "steps": [
+        {
+          "name": "install_skills",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.078
+        },
+        {
+          "name": "readonly_plan",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.282
+        },
+        {
+          "name": "fresh_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 47.969
+        },
+        {
+          "name": "doctor_runtime",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 3.031
+        },
+        {
+          "name": "offline_resume",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 5.266
+        },
+        {
+          "name": "repeat_skill_install",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.078
+        },
+        {
+          "name": "windows_mcp_refused",
+          "expected_exit_code": 1,
+          "exit_code": 1,
+          "elapsed_seconds": 0.172
+        },
+        {
+          "name": "portable_component_tests",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 14.359
+        },
+        {
+          "name": "real_local_speech",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 5.875
+        },
+        {
+          "name": "package_inventory",
+          "expected_exit_code": 0,
+          "exit_code": 0,
+          "elapsed_seconds": 0.329
+        }
+      ],
+      "suites": [
+        {
+          "suite": "test_setup_environment.py",
+          "tests_run": 22,
+          "passed": true,
+          "skipped": [
+            [
+              "test_setup_environment.SetupTests.test_state_symlink_does_not_overwrite_target",
+              "symlink creation needs Windows-specific privileges"
+            ],
+            [
+              "test_setup_environment.SetupTests.test_venv_symlink_rejected",
+              "symlink creation needs Windows-specific privileges"
+            ]
+          ]
+        },
+        {
+          "suite": "test_doctor.py",
+          "tests_run": 15,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_configuration.py",
+          "tests_run": 11,
+          "passed": true,
+          "skipped": [
+            [
+              "test_configuration.ConfigurationTests.test_existing_shared_profile_directory_fails_before_secret_prompt",
+              "POSIX directory permissions"
+            ],
+            [
+              "test_configuration.SkillInstallerTests.test_symlink_ancestor_or_backup_is_never_followed",
+              "symlink setup requires privileges on Windows"
+            ]
+          ]
+        },
+        {
+          "suite": "test_skill_entry.py",
+          "tests_run": 1,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_setup_sdk.py",
+          "tests_run": 13,
+          "passed": true,
+          "skipped": [
+            [
+              "test_setup_sdk.SDKSetupTests.test_second_installer_cannot_enter_existing_transaction",
+              "POSIX lock behavior"
+            ],
+            [
+              "test_setup_sdk.SDKSetupTests.test_symlink_destination_or_backup_never_moves_existing_assets",
+              "POSIX symlinks"
+            ]
+          ]
+        },
+        {
+          "suite": "test_mcp_server.py",
+          "tests_run": 26,
+          "passed": true,
+          "skipped": [
+            [
+              "test_mcp_server.BoundaryTests.test_confirmation_is_required_before_any_write_or_spawn",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_construction_doctor_and_empty_lists_never_create_home",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_cross_process_start_lock_prevents_competing_admission",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_failed_spawn_is_listed_without_exposing_exception_or_password",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_fifos_are_rejected_without_blocking",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_hardlinks_and_world_readable_profiles_are_rejected",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_ids_and_result_kind_cannot_be_paths",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_partial_transcript_is_labelled_and_read_limits_enforced",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_profile_schema_has_no_commands_paths_or_optional_llm",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_run_preparation_failure_is_terminal_and_does_not_hold_slot",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_stale_heartbeat_does_not_report_connected_or_complete",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_start_is_secret_free_no_llm_and_creates_private_unique_runs",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_status_fields_are_allowlisted",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_stop_after_reconnect_uses_request_file_not_pid_or_external_signal",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_stop_is_delivered_inside_owned_worker_and_final_state_is_persisted",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_stop_request_symlink_is_not_followed_or_replaced",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_summary_requires_current_digest_and_complete_minutes_status",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_symlink_parent_and_result_are_not_followed",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_symlink_profile_is_rejected_and_omitted_from_listing",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_two_active_limit_is_shared_across_managers_and_failures_release_slots",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_unicode_pagination_preserves_all_transcript_characters",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_unreadable_existing_worker_state_requires_manual_review",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_unresponsive_workers_continue_to_consume_slots",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.BoundaryTests.test_worker_calls_existing_webjoin_with_llm_none_and_removes_copied_secrets",
+              "MCP private file boundary requires POSIX directory handles"
+            ],
+            [
+              "test_mcp_server.SDKTests.test_official_sdk_tools_and_annotations",
+              "install optional requirements-mcp.txt for official SDK integration"
+            ],
+            [
+              "test_mcp_server.SDKTests.test_stdio_roundtrip_does_not_create_home_or_emit_non_protocol_stdout",
+              "install optional requirements-mcp.txt for official SDK integration"
+            ]
+          ]
+        },
+        {
+          "suite": "test_browser_capture.py",
+          "tests_run": 6,
+          "passed": true,
+          "skipped": []
+        },
+        {
+          "suite": "test_stop_signals.py",
+          "tests_run": 2,
+          "passed": true,
+          "skipped": [
+            [
+              "test_stop_signals.RecordingStopTests.test_int_during_real_browser_recording_flushes_and_restores_handlers",
+              "POSIX signals; Windows console needs separate acceptance"
+            ],
+            [
+              "test_stop_signals.RecordingStopTests.test_term_during_real_browser_recording_flushes_and_restores_handlers",
+              "POSIX signals; Windows console needs separate acceptance"
+            ]
+          ]
+        }
+      ],
+      "speech": {
+        "success": true,
+        "exit_code": 0,
+        "elapsed_seconds": 5.125,
+        "fixture_sha256": "bd1121612c2e87c8d4718e47ff3a64d46cc4480c431e5bd030ffc2f7aab91f71",
+        "reference_text": "Проверка записи. Программа работает. Это тестовая запись. Проверка завершена.",
+        "keywords": {
+          "проверка": false,
+          "работает": true,
+          "запись": false
+        },
+        "keyword_check": {
+          "passed": false,
+          "matched": 1,
+          "total": 3,
+          "gates_installation": false
+        },
+        "recognition_quality_accepted": false,
+        "transcript": "[22:13:34] Продамерка написи. Программа работает. Это теста моя напис. Продамерка на мир сюда.\n",
+        "model_snapshot": "536b0662742c02347bc0e980a01041f333bce120",
+        "model_files_sha256": {
+          "config.json": "b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828",
+          "model.bin": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671",
+          "tokenizer.json": "fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab",
+          "vocabulary.txt": "34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913"
+        },
+        "scope": "One synthetic Russian phrase through real ffmpeg and Whisper small; not a quality benchmark or Zoom"
+      },
+      "evidence_sha256": {
+        "report.json": "a261118152d344d18cf05b12205ec595234dd933502a7f2242cfa359b1653d59",
+        "tests.json": "dcd5188db6c24b7ace30916db6a692b4a0fe008fce6e0828883f760922ec3d5c",
+        "speech.json": "2617efdbfd3a6c723d420aef90203e4fd617fb5e2c1fd6b979090e9f2e822d8a"
+      }
+    }
+  ]
+}

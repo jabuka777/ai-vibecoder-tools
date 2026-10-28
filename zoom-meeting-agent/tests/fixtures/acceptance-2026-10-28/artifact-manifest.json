@@ -1,6 +1,6 @@
 {
   "sha256": {
-    "README.md": "3377b3050b5e55f81e14cd3d09da41e57382e923f618615b585898e6e97f8824",
+    "README.md": "5c65df3bb16b35e68de36851b6285445aa3bfe0677a7fdfe4660c740d441647a",
     "beam-comparison.json": "5d8566c1356174f2abc4c01235a969dfd0df119095c7208252b5f3756e4d4536",
     "browser-failures.json": "8befa38544e69bc09f42ca2e6e93c81300be984cbe12da4fc1974230dccea122",
     "decoder-timeout.json": "ba5578f9c4b75971672897a43cd95c83a4fd12adaa85dda5817dda9b5985af74",
@@ -25,16 +25,21 @@
     "model-results-3.jsonl": "4288577d014ce2bed37b5ad076c469d6b06c3170fe27d48a985e4a89fe73ada4",
     "model-results-4.jsonl": "fabc9e255bf0cea71ff3fd1cd1929b7d086d73e4853b2715bebee1d23fe5ae3c",
     "model-results-5.jsonl": "4152061c90ef4981279c0d3e1f1317b343575d7f867eda3544c01919555b097b",
+    "normal-recording-latest.json": "6dcd0e63d50d6f465a5a61409207efe392355b9f7066a824a0ccc40bffb3bbe5",
     "portable-installation-sdk-fix.json": "336fbc06a09e533ee3444e15106edee93e9424cfaadf29aa3f23f6c908a0f8bb",
+    "portable-installation-stop-fix.json": "130095511427ee77ccf16c4f17456cdbdd2e5ab382828e613366edb1bea73e2b",
     "portable-installation.json": "9dfca45780b63c4cbbe6f37041fc8db208dfc1fd8d936d12c68ea5c6ea063dfa",
     "replies-and-canary.json": "895352a69bcb2439e357e542934e809d5c01608d3a8bed3c3e8b3be65bdce8cb",
-    "scenario-coverage.json": "2449c4fa63e1aa470e61ada590ccb14db8d650cbb33f06bb5d1e133ad32d008f",
+    "scenario-coverage.json": "cf252f58bc44d2138dfb5861e10b0c71b575266b26e022c967efba08627ba705",
     "sdk-assets-after.json": "f6c52bdb5bb36314cb40810ed4f97d101d3b8592ff705f640cc2c5e1bd924116",
     "sdk-bootstrap-after.json": "0eb59eb43246fb08fe9337d9e69a80daa2d5cf093c7690b3f41694087e6eca2f",
     "sdk-bootstrap-before.json": "8670cb2b75ef857f15b578313e481e672cdbd112c8e39f97f3b040912fc9dba0",
     "sdk-upgrade-rollback.json": "4c2003ae2cc56648f6348326f87a665745732cf395510a1547dc7eb6ee3fa69c",
+    "source-manifest-stop-fix.json": "0d360f61dc640c159406d47b3ac84f168a6bf8cbd8b17f69a9d1eef2adecef92",
     "source-manifest.json": "8e3744a6efe247389515a0311ec09ed46ec643cedfeaac8816db5c65337cebd8",
+    "stop-signals-latest.json": "ce652ec715c31471889eb8c69c1067c21b1fb485b13ce7e8f6e3ef3f11b5276c",
     "stt-30min.json": "c0c4e8142e47ce804ccb8c49a76211231147fcbe2cf26483bf15a2060a9c1da0",
-    "whisper-recovery-and-drain.json": "a2e2e9b0475bd5211a257deb20ecc8070369619cf43d493fd5e3410ab2d03873"
+    "whisper-recovery-and-drain.json": "a2e2e9b0475bd5211a257deb20ecc8070369619cf43d493fd5e3410ab2d03873",
+    "whisper-recovery-latest.json": "8bd6017c7ed265dfe3e718e85fb5c14247bb0d5b680841f79942becad3f7b1f7"
   }
 }

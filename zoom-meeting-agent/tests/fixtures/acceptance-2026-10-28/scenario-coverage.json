@@ -279,7 +279,9 @@
       ],
       "local_procedure_passed": true,
       "evidence": "whisper-recovery-and-drain.json",
-      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55",
+      "latest_repeat_revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "latest_repeat_evidence": "whisper-recovery-latest.json"
     },
     {
       "id": "F24",
@@ -413,7 +415,9 @@
       ],
       "local_procedure_passed": true,
       "evidence": "whisper-recovery-and-drain.json",
-      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55",
+      "latest_repeat_revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "latest_repeat_evidence": "whisper-recovery-latest.json"
     },
     {
       "id": "N11",
@@ -475,20 +479,26 @@
       ],
       "local_procedure_passed": true,
       "evidence": "whisper-recovery-and-drain.json",
-      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55"
+      "measured_revision": "b5011031cadde65d450ec5f99e4caeb456ccbc55",
+      "latest_repeat_revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "latest_repeat_evidence": "whisper-recovery-latest.json"
     },
     {
       "id": "N16",
       "title": "Сигналы остановки и аварийность",
       "status": "partial",
-      "observed": "TERM propagation/process tree and flush regressions pass; interrupted preflight evidence retained.",
-      "remaining": "Full Ctrl+C/SIGTERM/SIGKILL recording matrix; cleanup after supervisor SIGKILL is not guaranteed.",
+      "observed": "Actual Linux Chromium/Whisper recording on 585a666: SIGINT and SIGTERM flush two saved chunks and exit successfully in 12.581s and 10.122s; SIGKILL leaves zero observed owned children before harness cleanup, with no false complete status. Earlier SIGINT hang and one orphan are preserved in the evidence.",
+      "remaining": "No live Zoom, SDK meeting, Windows signals, arbitrary descendant guarantee or unsent-tail durability after SIGKILL. Four-hour endurance uses older b501103.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_runtime.py",
         "zoom-meeting-agent/tests/test_stt.py",
         "zoom-meeting-agent/tests/test_process_tree.py",
-        "zoom-meeting-agent/tests/test_transcript_tail.py"
-      ]
+        "zoom-meeting-agent/tests/test_transcript_tail.py",
+        "zoom-meeting-agent/tests/test_stop_signals.py"
+      ],
+      "local_procedure_passed": true,
+      "evidence": "stop-signals-latest.json",
+      "measured_revision": "585a66672dca324f39d86a218717567a9646a33e"
     },
     {
       "id": "N17",
@@ -572,15 +582,16 @@
       "id": "N24",
       "title": "Чистая установка на целевых ОС",
       "status": "partial",
-      "observed": "Fresh ZIP install, empty caches, real browser/STT and offline resume pass Ubuntu 24, macOS 26.6.2 ARM64, Windows Server 2025. After the SDK asset fix, the same three-platform CI passed again: 94 component tests on Ubuntu/macOS; 62 executed and 32 skipped on Windows Server.",
-      "remaining": "Windows 11, real Zoom on all OS and independent novice not tested. Windows MCP unsupported; 32 component tests skipped there.",
+      "observed": "Fresh ZIP installation from 585a666 passes on Ubuntu 24, macOS ARM64 and Windows Server 2025. 96 component cases: no skips on Ubuntu/macOS, 62 executed and 34 explicitly skipped on Windows. Real browser and local Whisper; speech quality is not accepted.",
+      "remaining": "Windows 11, actual Zoom and independent novice not tested. Windows MCP unsupported; 26 MCP, six POSIX and two signal cases skipped.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_setup_environment.py",
         "zoom-meeting-agent/tests/test_doctor.py",
         "zoom-meeting-agent/tests/test_configuration.py",
         "zoom-meeting-agent/tests/test_skill_entry.py"
       ],
-      "follow_up_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394"
+      "follow_up_revision": "585a66672dca324f39d86a218717567a9646a33e",
+      "evidence": "portable-installation-stop-fix.json"
     },
     {
       "id": "N25",
@@ -609,5 +620,6 @@
       ]
     }
   ],
-  "additional_tested_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394"
+  "additional_tested_revision": "88f5c66dcf51d6b97bacb7c5427ce16b78a15394",
+  "latest_targeted_revision": "585a66672dca324f39d86a218717567a9646a33e"
 }

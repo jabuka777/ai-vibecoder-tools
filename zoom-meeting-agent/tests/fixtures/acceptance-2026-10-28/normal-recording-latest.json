@@ -1,0 +1,22 @@
+{
+  "revision": "585a66672dca324f39d86a218717567a9646a33e",
+  "scenario": "success",
+  "passed": true,
+  "app_exit_code": 0,
+  "seconds": 80.266,
+  "status": [
+    {
+      "state": "complete",
+      "reason": null,
+      "ts": 1793198214.5179014,
+      "incomplete": false,
+      "recording_complete": true,
+      "summary_state": null,
+      "problems": []
+    }
+  ],
+  "actual_browser": true,
+  "actual_whisper": true,
+  "zoom_contacted": false,
+  "network": "All browser requests intercepted locally; no real Zoom or participants"
+}
