@@ -50,11 +50,14 @@ class DoctorTests(unittest.TestCase):
     def test_sdk_requires_exact_referenced_assets_and_credentials(self):
         root = Path(self.directory)
         (root / 'static' / 'lib' / 'av').mkdir(parents=True)
-        (root / 'static' / 'index.html').write_text('<script src="/static/zoom-meeting-6.10.0.min.js"></script>')
+        (root / 'static' / 'index.html').write_text('<link rel="stylesheet" href="/static/ui/zoom-meetingsdk.css"><script src="/static/zoom-meeting-6.10.0.min.js"></script>')
         (root / 'static' / 'zoom-meeting-6.9.0.min.js').write_text('old version')
         (root / 'static' / 'lib' / 'av' / 'audio.wasm').write_bytes(b'wasm')
         self.assertFalse(doctor.sdk_present())
         (root / 'static' / 'zoom-meeting-6.10.0.min.js').write_text('current version')
+        self.assertFalse(doctor.sdk_present())
+        (root / 'static' / 'ui').mkdir()
+        (root / 'static' / 'ui' / 'zoom-meetingsdk.css').write_text('SDK styles')
         self.assertTrue(doctor.sdk_present())
         with patch.object(doctor, 'load_env', return_value={}):
             self.assertFalse(doctor.collect_checks(mode='sdk')['ok'])

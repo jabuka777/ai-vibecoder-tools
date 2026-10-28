@@ -109,6 +109,10 @@ def sdk_present():
                 source = dict(attrs).get('src')
                 if source:
                     self.sources.append(source)
+            elif tag == 'link' and dict(attrs).get('rel') == 'stylesheet':
+                source = dict(attrs).get('href')
+                if source:
+                    self.sources.append(source)
     try:
         parser = Scripts()
         parser.feed((HERE / 'static' / 'index.html').read_text(encoding='utf-8'))
@@ -213,7 +217,7 @@ def collect_checks(backend='none', mode='web', headed=False,
     add('gui_session', display, 'Графический сеанс нужен для login.py и запуска с окном; наличие переменной ещё не проверяет окно.',
         'Для проверки окна: --headed --check-browser на компьютере с графическим сеансом.', required=headed, status='ok' if display else 'missing' if headed else 'not_required')
     sdk = sdk_present()
-    add('sdk_assets', sdk, 'Файлы скриптов из index.html и локальные WASM; SDK нужен только для режима SDK.', 'Установите Node.js/npm, выполните setup_sdk.py и настройте приложение по REGISTRATION.md.', required=mode == 'sdk', status='ok' if sdk else 'missing' if mode == 'sdk' else 'not_required')
+    add('sdk_assets', sdk, 'Скрипты, стили из index.html и локальные WASM; SDK нужен только для режима SDK.', 'Установите Node.js/npm, выполните setup_sdk.py и настройте приложение по REGISTRATION.md.', required=mode == 'sdk', status='ok' if sdk else 'missing' if mode == 'sdk' else 'not_required')
     if mode == 'sdk':
         try:
             config = load_env(home=home)

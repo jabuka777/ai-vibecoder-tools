@@ -36,7 +36,7 @@ MAX_FILE = 128 * 1024 * 1024
 MAX_MEMBERS = 50000
 MAX_TAR_STREAM = 640 * 1024 * 1024
 SDK_SCRIPT = re.compile(r'zoom-meeting-[0-9]+\.[0-9]+\.[0-9]+\.min\.js')
-VENDOR_FILES = ('react.min.js', 'react-dom.min.js', 'redux.min.js', 'redux-thunk.min.js', 'lodash.min.js')
+VENDOR_FILES = ('react.min.js', 'react-dom.min.js', 'redux.min.js', 'react-redux.min.js', 'redux-thunk.min.js', 'lodash.min.js')
 
 
 class SDKSetupError(ValueError):
@@ -202,7 +202,8 @@ def prepare_assets(static, dist, version, staging, archive):
         if path.is_symlink() or not (path.is_dir() or path.is_file()):
             raise SDKSetupError('Existing SDK assets contain links or special files; installation stopped')
     script = dist / f'zoom-meeting-{version}.min.js'
-    required = [script, *(dist / 'lib' / 'vendor' / name for name in VENDOR_FILES)]
+    required = [script, dist / 'ui' / 'zoom-meetingsdk.css',
+                *(dist / 'lib' / 'vendor' / name for name in VENDOR_FILES)]
     if not (dist / 'lib' / 'av').is_dir() or any(not path.is_file() or not path.stat().st_size for path in required):
         raise SDKSetupError('SDK archive lacks the assets required by this product')
     original = (static / 'index.html').read_text(encoding='utf-8')
@@ -211,9 +212,10 @@ def prepare_assets(static, dist, version, staging, archive):
         raise SDKSetupError('Expected one SDK script reference in index.html; previous files were preserved')
     prepared = staging / 'static'
     shutil.copytree(static, prepared,
-                    ignore=lambda folder, names: [name for name in names if name == 'lib' or SDK_SCRIPT.fullmatch(name)]
+                    ignore=lambda folder, names: [name for name in names if name in {'lib', 'ui'} or SDK_SCRIPT.fullmatch(name)]
                     if Path(folder) == static else [])
     shutil.copytree(dist / 'lib', prepared / 'lib')
+    shutil.copytree(dist / 'ui', prepared / 'ui')
     shutil.copy2(script, prepared / script.name)
     (prepared / 'index.html').write_text(index, encoding='utf-8')
     (prepared / 'sdk-installation.json').write_text(json.dumps({

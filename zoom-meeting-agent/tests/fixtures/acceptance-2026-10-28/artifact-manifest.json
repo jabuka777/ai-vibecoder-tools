@@ -1,10 +1,12 @@
 {
   "sha256": {
-    "README.md": "5d393d74916159bcd475b93c56e80654f34725fc66f88f41ba946837a75f8f86",
+    "README.md": "aea36c01c2ad3d3668d815d1862d2ec96b8b8464d7ddb84dcc47879669897a38",
+    "beam-comparison.json": "5d8566c1356174f2abc4c01235a969dfd0df119095c7208252b5f3756e4d4536",
     "browser-failures.json": "8befa38544e69bc09f42ca2e6e93c81300be984cbe12da4fc1974230dccea122",
     "decoder-timeout.json": "ba5578f9c4b75971672897a43cd95c83a4fd12adaa85dda5817dda9b5985af74",
     "http.json": "8d5495ec94d0f190aaf8e771b653117667eac375809049f48c1537010ce28469",
     "llm-errors-and-events.json": "e18d1ce3e909208cc3e61d9ddb5e82a819cf9c33eb9cd0904710d87f7a1c5c3c",
+    "local-audio-to-minutes.json": "6f8b711e909b44cfb4788bac3fa5b12aba3a607c5c0505abb1dac8748260fceb",
     "model-baseline-report.json": "9ca0bf99e543afd6a39f63d7af7cff336d4528394ed7f7337228413717f447f1",
     "model-cases.jsonl": "4719be75ae5b35cc4742170cc3e1274e85fcf11fa4510deeade1e617e06d5397",
     "model-metrics-1.jsonl": "8cc31d5dc268d51b80db731151041871ba8d65fc20486b639cfad4e9f40aed53",
@@ -25,7 +27,10 @@
     "model-results-5.jsonl": "4152061c90ef4981279c0d3e1f1317b343575d7f867eda3544c01919555b097b",
     "portable-installation.json": "9dfca45780b63c4cbbe6f37041fc8db208dfc1fd8d936d12c68ea5c6ea063dfa",
     "replies-and-canary.json": "895352a69bcb2439e357e542934e809d5c01608d3a8bed3c3e8b3be65bdce8cb",
-    "scenario-coverage.json": "7a4cd693143c053d4f45113c20f0daef56138682e9894f91e44637674f020ee2",
+    "scenario-coverage.json": "21e93374b769ebd838c1d69896617c2263557dd09c0f8b5c9d6946735900708e",
+    "sdk-assets-after.json": "f6c52bdb5bb36314cb40810ed4f97d101d3b8592ff705f640cc2c5e1bd924116",
+    "sdk-bootstrap-after.json": "0eb59eb43246fb08fe9337d9e69a80daa2d5cf093c7690b3f41694087e6eca2f",
+    "sdk-bootstrap-before.json": "8670cb2b75ef857f15b578313e481e672cdbd112c8e39f97f3b040912fc9dba0",
     "sdk-upgrade-rollback.json": "4c2003ae2cc56648f6348326f87a665745732cf395510a1547dc7eb6ee3fa69c",
     "source-manifest.json": "8e3744a6efe247389515a0311ec09ed46ec643cedfeaac8816db5c65337cebd8",
     "stt-30min.json": "c0c4e8142e47ce804ccb8c49a76211231147fcbe2cf26483bf15a2060a9c1da0"

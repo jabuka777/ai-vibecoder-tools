@@ -115,12 +115,13 @@
       "id": "F09",
       "title": "Критические сущности речи",
       "status": "partial",
-      "observed": "Synthetic speech and text contracts exercise names and dates.",
+      "observed": "Synthetic speech and text contracts exercise names and dates. Subsequent 180s local audio-to-minutes run produced six task records, but only 4/6 exact dates and 2/6 exact project names; entity-quality check FAILED. See local-audio-to-minutes.json.",
       "remaining": "Independent entity scoring including amounts and mixed terms.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_minutes.py",
         "zoom-meeting-agent/tests/test_evaluate_minutes.py"
-      ]
+      ],
+      "local_quality_check_failed": true
     },
     {
       "id": "F10",
@@ -172,23 +173,25 @@
       "id": "F14",
       "title": "Полнота согласованных поручений",
       "status": "partial",
-      "observed": "All five actual Codex repeats retain six D01 text tasks under strict field/evidence checks.",
+      "observed": "All five actual Codex repeats retain six D01 text tasks under strict field/evidence checks. Subsequent 180s local audio-to-minutes run produced six task records, but only 4/6 exact dates and 2/6 exact project names; entity-quality check FAILED. See local-audio-to-minutes.json.",
       "remaining": "Six spoken tasks through Zoom/STT and independent final-minutes review.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_minutes.py",
         "zoom-meeting-agent/tests/test_evaluate_minutes.py"
-      ]
+      ],
+      "local_quality_check_failed": true
     },
     {
       "id": "F15",
       "title": "Разделение проектов и исполнителей",
       "status": "partial",
-      "observed": "Two-project synthetic text cases pass five repeats.",
+      "observed": "Two-project synthetic text cases pass five repeats. Subsequent 180s local audio-to-minutes run produced six task records, but only 4/6 exact dates and 2/6 exact project names; entity-quality check FAILED. See local-audio-to-minutes.json.",
       "remaining": "Independent human multi-speaker speech; diarization is not implemented.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_minutes.py",
         "zoom-meeting-agent/tests/test_evaluate_minutes.py"
-      ]
+      ],
+      "local_quality_check_failed": true
     },
     {
       "id": "F16",
@@ -573,8 +576,8 @@
       "id": "N25",
       "title": "Повтор установки и смена SDK",
       "status": "partial",
-      "observed": "Actual published SDK 6.5.0 -> 6.10.0 -> 6.5.0 installation, script/archive hashes and preserved backups pass. CI inventories/model hashes published.",
-      "remaining": "Actual SDK meeting smoke after each version change; exact all-platform dependency lock not claimed.",
+      "observed": "Actual published SDK 6.5.0 -> 6.10.0 -> 6.5.0 installation, script/archive hashes and preserved backups pass. CI inventories/model hashes published. Additional real browser check exposed missing ReactRedux and UI assets. Fixed installer repeats 6.5 -> 6.10 -> 6.5 and all three bundle bootstraps load without page errors or HTTP asset failures.",
+      "remaining": "Actual SDK meeting smoke after each version change; exact all-platform dependency lock not claimed. Zoom documents Web Meeting SDK for human use, not AI bots; RTMS is not implemented here.",
       "regression_files": [
         "zoom-meeting-agent/tests/test_setup_environment.py",
         "zoom-meeting-agent/tests/test_setup_sdk.py",

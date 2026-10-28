@@ -26,7 +26,7 @@ class SDKSetupTests(unittest.TestCase):
         (self.static / 'lib').mkdir(parents=True)
         (self.static / 'lib' / 'old.asset').write_bytes(b'old SDK')
         (self.static / 'zoom-meeting-6.9.0.min.js').write_bytes(b'old JS')
-        (self.static / 'index.html').write_text('<script src="/static/zoom-meeting-6.9.0.min.js"></script>')
+        (self.static / 'index.html').write_text((CORE / 'static/index.html').read_text().replace('6.10.0','6.9.0'))
         (self.static / 'custom.txt').write_text('operator customization')
 
     def archive(self, entries=None):
@@ -35,6 +35,8 @@ class SDKSetupTests(unittest.TestCase):
             entries = [('package/dist/zoom-meeting-6.10.0.min.js', b'new JS', tarfile.REGTYPE)]
             entries += [('package/dist/lib/vendor/' + name, b'vendor', tarfile.REGTYPE) for name in sdk.VENDOR_FILES]
             entries += [('package/dist/lib/av/synthetic.wasm', b'wasm', tarfile.REGTYPE)]
+            entries += [('package/dist/ui/zoom-meetingsdk.css', b'styles', tarfile.REGTYPE),
+                        ('package/dist/ui/lazy-view.js', b'lazy UI', tarfile.REGTYPE)]
         with tarfile.open(path, 'w:gz') as bundle:
             for name, content, kind in entries:
                 member = tarfile.TarInfo(name)
@@ -127,6 +129,25 @@ class SDKSetupTests(unittest.TestCase):
                 with self.assertRaises((sdk.SDKSetupError, KeyboardInterrupt)):
                     sdk.install_sdk(static=self.static)
             self.assertEqual(self.snapshot(), before)
+
+    def test_missing_ui_is_rejected_and_complete_ui_replaces_old_version(self):
+        (self.static / 'ui').mkdir()
+        (self.static / 'ui/old-version.js').write_text('old UI')
+        before = self.snapshot()
+        complete = self.archive()
+        with tarfile.open(complete) as bundle:
+            entries = [(m.name, bundle.extractfile(m).read(), tarfile.REGTYPE)
+                       for m in bundle.getmembers() if '/ui/' not in m.name]
+        with patch.object(sdk, 'download_archive', return_value=self.archive(entries)), self.assertRaises(sdk.SDKSetupError):
+            sdk.install_sdk(static=self.static)
+        self.assertEqual(self.snapshot(), before)
+        with patch.object(sdk, 'download_archive', return_value=self.archive()):
+            result = sdk.install_sdk(static=self.static)
+        self.assertEqual((self.static / 'ui/zoom-meetingsdk.css').read_bytes(), b'styles')
+        self.assertEqual((self.static / 'ui/lazy-view.js').read_bytes(), b'lazy UI')
+        self.assertFalse((self.static / 'ui/old-version.js').exists())
+        self.assertEqual((Path(result['backup']) / 'static/ui/old-version.js').read_text(), 'old UI')
+        self.assertIn('/static/lib/vendor/react-redux.min.js', (self.static / 'index.html').read_text())
 
     def test_missing_assets_leave_original_untouched(self):
         before = self.snapshot()

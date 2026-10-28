@@ -24,3 +24,4 @@ Verification on 2026-10-28: 237 local tests; fresh ZIP installation CI passed on
 
 Start here: https://github.com/jabuka777/jabuka-tools/blob/main/START_HERE.md
 Verification: local tests are not real Zoom acceptance or Windows/macOS certification.
+Zoom documents Web Meeting SDK for human use, not bots or AI notetakers: https://github.com/zoom/meetingsdk-web. SDK mode here is experimental; RTMS is not implemented. Automated Web entry remains subject to meeting policies and bot controls.

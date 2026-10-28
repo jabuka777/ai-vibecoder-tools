@@ -57,6 +57,10 @@ macOS ARM64 и Windows Server 2025. Выполнены 30 минут синте�
 Живой Zoom, Windows 11 и самостоятельный запуск независимым новичком ещё
 требуют проверки. MCP поддерживается на Linux/macOS; на Windows доступны скилл и CLI.
 
+Web Meeting SDK [не предназначен Zoom для ботов и AI-протоколистов](https://github.com/zoom/meetingsdk-web).
+SDK-режим инструмента экспериментальный; рекомендованный Zoom для таких задач
+RTMS здесь не реализован. Web-вход также зависит от правил и разрешений встречи.
+
 ```bash
 python -m unittest discover -s zoom-meeting-agent/tests -v
 python zoom-meeting-agent/tools/evaluate_minutes.py --offline
