@@ -8,13 +8,24 @@ import signal
 from pathlib import Path
 import subprocess
 import sys
-import threading
 import time
 import uuid
 
 from env import SESSIONS, venv_python
 
 HERE = Path(__file__).resolve().parent
+
+
+class _StopRequest:
+    def __init__(self):
+        self.requested = False
+
+    def is_set(self):
+        return self.requested
+
+    def request(self, *_):
+        # Signal handlers must not acquire locks, including Event.set()'s lock.
+        self.requested = True
 
 
 def cooperative_stop(function):
@@ -26,12 +37,12 @@ def cooperative_stop(function):
     """
     @wraps(function)
     def run(*args, **kwargs):
-        requested = threading.Event()
+        requested = _StopRequest()
         previous = {}
         try:
             for sig in (signal.SIGINT, signal.SIGTERM):
                 previous[sig] = signal.getsignal(sig)
-                signal.signal(sig, lambda *_: requested.set())
+                signal.signal(sig, requested.request)
             return function(*args, _stop=requested, **kwargs)
         finally:
             for sig, handler in previous.items():
